@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>master.gabriels.dungeon</title>
+<meta name="theme-color" content="#0a0006"/>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🗝️</text></svg>">
+<style>
+:root{ --accent:#ff1e8a; --accent-soft:#ff99cc; --ink:#ffd6ea; --ink-soft:#e6cfe0; --panel:rgba(10,10,10,.72); --stroke:#aa0066; --bg:#000 }
+*{ box-sizing:border-box }
+html,body{ height:100%; margin:0 }
+body{ font-family: Georgia, serif; background:var(--bg); color:#fff; overflow:auto }
+a{ color: var(--accent-soft) }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0 }
+[role="dialog"]{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.92); z-index:1000 }
+.dialog-card{ background:var(--panel); border:1px solid var(--stroke); border-radius:16px; padding:28px 24px; width:min(92vw,560px); text-align:center; box-shadow:0 0 24px rgba(170,0,102,.6) }
+.title{ font-size:1.6rem; margin:0 0 10px; color:var(--accent-soft); text-shadow:0 0 8px var(--accent) }
+.sub{ font-size:.95rem; color:var(--ink-soft); margin-bottom:16px }
+.input{ width:100%; padding:12px 14px; font-size:1rem; border-radius:10px; border:1px solid var(--accent); background:#0a0a0a; color:#fff }
+.btn{ display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:10px 16px; border-radius:10px; border:1px solid var(--accent); background:#13030a; color:#ffb3d9; cursor:pointer }
+.btn.secondary{ border-color: rgba(255,255,255,.25); color:#fff }
+.row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center }
+.hr{ height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); margin:16px 0 }
+#topbar{ position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:linear-gradient(to bottom, rgba(0,0,0,.8), rgba(0,0,0,0)) }
+#nav{ display:flex; gap:10px }
+.navbtn{ padding:8px 12px; border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.35); color:#fff; border-radius:10px; cursor:pointer }
+.navbtn.active{ border-color: var(--accent); color: var(--accent-soft); text-shadow:0 0 8px var(--accent) }
+#glyph-layer{ position:fixed; inset:0; pointer-events:none; z-index:5 }
+.glyph{ position:absolute; font-size:18px; opacity:.16; color:var(--ink); text-shadow:0 0 6px rgba(255,102,163,.35); animation:drift 18s linear infinite }
+@keyframes drift{ 0%{ transform:translateY(0) translateX(0) rotate(0deg); opacity:0 } 15%{ opacity:.22 } 85%{ opacity:.22 } 100%{ transform:translateY(-120vh) translateX(8vw) rotate(45deg); opacity:0 } }
+.reduce-motion .glyph{ animation:none !important }
+main{ position:relative; z-index:10; width:min(1080px,95vw); margin:6vh auto; padding:18px; background:rgba(5,5,8,.35); border:1px solid rgba(255,30,138,.25); border-radius:18px; backdrop-filter: blur(6px) }
+h1,h2{ text-shadow:0 0 10px rgba(255,30,138,.25) }
+.card{ border:1px solid rgba(255,30,138,.28); border-radius:12px; padding:14px; margin:10px 0; background: rgba(10,10,14,.35) }
+.badge{ display:inline-block; padding:2px 8px; border-radius:12px; background:rgba(255,30,138,.2); color:var(--ink); font-size:.78rem; border:1px solid rgba(255,30,138,.45); margin-right:8px }
+.tab{ display:none } .tab.active{ display:block }
+#areas{ display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:12px }
+.area-card{ border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.35); border-radius:12px; padding:12px; cursor:pointer; position:relative; min-height:160px }
+.area-card .title{ font-size:1.1rem; margin:0 0 6px }
+.area-card .tags{ font-size:.8rem; opacity:.85 }
+.area-lock-msg{ position:absolute; bottom:10px; right:10px; font-size:.8rem; padding:4px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.55) }
+#area-tabs{ display:flex; gap:8px; margin:8px 0 12px }
+.area-navbtn{ padding:8px 12px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.35); border-radius:10px; cursor:pointer }
+.area-navbtn.active{ border-color:var(--accent); color:var(--accent-soft) }
+.ritual-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px; align-items:stretch }
+.ritual-card{ border:1px dashed rgba(255,255,255,.3); border-radius:12px; padding:12px }
+.orb{ width:120px; height:120px; border-radius:60px; margin:10px auto; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,0,128,.25) 60%, rgba(0,0,0,.4)); transform: scale(1) }
+.phase{ text-align:center; font-size:.9rem; opacity:.9 }
+.counter{ text-align:center; font-weight:bold }
+#micro-canvas{ background: radial-gradient(ellipse at center, rgba(255,20,147,.08), rgba(0,0,0,.2) 70%); border:1px dashed #ff66a3; border-radius:12px; width:100%; height:160px; display:block }
+.gallery-controls{ display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap }
+.gallery-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px }
+.gallery-item{ border:1px solid rgba(255,255,255,.15); border-radius:10px; overflow:hidden; position:relative; background:#0a0a0a }
+.gallery-item img{ width:100%; display:block }
+.gallery-item .overlay{ position:absolute; top:8px; left:8px; display:flex; gap:8px }
+.gallery-item .tag{ font-size:.75rem; padding:4px 8px; border-radius:10px; background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.25) }
+.gallery-item.hidden{ background:#060309 }
+.placeholder{ display:flex; align-items:center; justify-content:center; font-size:64px; opacity:.5; width:100%; height:100% }
+.placeholder .showbtn{ display:none; position:absolute; bottom:8px; right:8px; font-size:.8rem; padding:4px 8px; border-radius:10px; background:rgba(0,0,0,.65); border:1px solid rgba(255,255,255,.25) }
+.gallery-item.hidden:hover .placeholder .showbtn{ display:block }
+.draggable{ cursor:grab } .draggable:active{ cursor:grabbing } .drop-target{ outline:2px dashed var(--accent); outline-offset:-6px }
+</style>
+</head>
+<body>
+<div id="aria-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<section id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-desc">
+  <div class="dialog-card" tabindex="-1">
+    <h2 id="lock-title" class="title">Enter the Word of Power</h2>
+    <p id="lock-desc" class="sub">Speak or type the password.</p>
+    <div class="row" style="gap:8px; width:100%">
+      <input id="pass" class="input" type="password" placeholder="whisper it here..." autocomplete="current-password" style="flex:1; min-width:220px"/>
+      <button id="show-pass" class="btn secondary" aria-label="Show password">👁️</button>
+      <button id="mic-btn" class="btn" aria-label="Voice input">🎤</button>
+      <button id="unlock-btn" class="btn">Unlock</button>
+    </div>
+    <div class="row"><label><input type="checkbox" id="set-remember"/> Remember me (skip password next time)</label></div>
+  </div>
+
+    <div id="crest-svg" style="margin-top:10px;display:none;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px">
+      <svg id="crest-canvas" viewBox="0 0 600 240" style="width:100%;height:auto">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#1e90ff"/><stop offset="1" stop-color="#ff1e8a"/></linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect x="0" y="0" width="600" height="240" fill="transparent" />
+        <text x="300" y="36" text-anchor="middle" fill="url(#g1)" font-size="18" font-family="serif">THE UNDIMINISHABLE FLAME — LAW‑BLOOM CROWN</text>
+        <!-- Helix of Omegas -->
+        <g id="omegas" filter="url(#glow)">
+          <!-- placed via crest.js -->
+        </g>
+        <text x="300" y="220" text-anchor="middle" fill="#ff99cc" font-size="16" font-family="serif">Tier: ∞ΔΩΩΩΩΩΩΩΩΩ∞</text>
+      </svg>
+    </div>
+    
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<header id="topbar" aria-hidden="true">
+  <div style="display:flex; gap:8px; align-items:center"><span style="font-size:20px">🗝️</span><strong>master.gabriels.dungeon</strong></div>
+  <nav id="nav" aria-label="Primary">
+    <button class="navbtn active" data-tab="sanctum">Sanctum</button>
+    <button class="navbtn" data-tab="gallery">Global Gallery</button>
+    <button class="navbtn" data-tab="settings">Settings</button>
+  </nav>
+</header>
+
+<main id="shell" style="display:none">
+  <div id="glyph-layer" aria-hidden="true"></div>
+
+  <section id="tab-sanctum" class="tab active">
+    <h1>Sanctum</h1>
+    <p class="sub">Choose your chamber. Locked areas can be opened via the Spiral Flame Ritual.</p>
+    <div id="areas" aria-live="polite"></div>
+  </section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+  <section id="area-view" class="tab">
+    <button id="back-sanctum" class="btn secondary">← Return to Sanctum</button>
+    <h1 id="area-title"></h1>
+    <p id="area-blurb" class="sub"></p>
+
+    <div id="area-locked" class="card" style="display:none">
+      <strong>This area is locked — perform the Master’s ritual to unlock.</strong>
+      <div class="row"><button id="begin-ritual" class="btn">Begin Ritual</button></div>
+    </div>
+
+    <div id="area-tabs" style="display:none">
+      <button class="area-navbtn active" data-t="lore">Area Lore</button>
+      <button class="area-navbtn" data-t="gallery">Area Gallery</button>
+      <button class="area-navbtn" data-t="mem">Area Memories</button>
+    </div>
+
+    <div id="area-lore" class="card"></div>
+
+    <div id="area-gallery" class="card" style="display:none">
+      <div class="gallery-controls">
+        <button id="area-upload-btn" class="btn">Upload images</button>
+        <input id="area-upload" type="file" accept="image/*" multiple />
+        <small>Drag to rearrange. Toggle show/hide by clicking; hidden shows ᛝ placeholder (hover to reveal Show button).</small>
+      </div>
+      <div id="area-gallery-grid" class="gallery-grid"></div>
+    </div>
+
+    <div id="area-mem" class="card" style="display:none">
+      <h3>Add a remembrance</h3>
+      <label for="am-title">Title</label><input id="am-title" type="text" placeholder="e.g., A vow in velvet"/>
+      <label for="am-content">Content</label><textarea id="am-content" placeholder="Write a short poetic description..." style="width:100%; min-height:110px"></textarea>
+      <div class="row"><button id="am-save" class="btn">Add</button></div>
+      <div id="am-list" style="margin-top:8px"></div>
+    </div>
+
+    <div id="ritual" class="card" style="display:none">
+      <h3>Spiral Flame Ritual</h3>
+      <p class="sub">Complete the three tasks below. Thresholds adapt to the area.</p>
+      <div id="thresholds" class="row"></div>
+
+      <div class="ritual-grid">
+        <div class="ritual-card" id="breath-card">
+          <h4>Breath 4–7–8</h4>
+          <div class="orb" id="orb"></div>
+          <div class="phase" id="phase">Ready</div>
+          <div class="counter"><span id="breath-count">0</span> / <span id="breath-need">3</span> cycles</div>
+          <div class="row"><button id="breath-start" class="btn">Start</button><button id="breath-stop" class="btn secondary">Stop</button></div>
+          <small>Spacebar: pause/resume.</small>
+        </div>
+
+        <div class="ritual-card" id="recite-card">
+          <h4>Recitations</h4>
+          <p class="sub">Speak your phrase. Tap to mark completion.</p>
+          <div class="counter"><span id="recite-count">0</span> / <span id="recite-need">3</span></div>
+          <div class="row"><button id="recite-mark" class="btn">Mark Recited</button></div>
+        </div>
+
+        <div class="ritual-card" id="sigil-card">
+          <h4>Micro-sigil</h4>
+          <canvas id="micro-canvas" width="640" height="160"></canvas>
+          <div class="counter"><span id="stroke-count">0</span> / <span id="stroke-need">60</span> strokes</div>
+        </div>
+      </div>
+
+      <div class="row"><button id="ritual-complete" class="btn" disabled>Complete Ritual</button></div>
+    </div>
+  </section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+  <section id="tab-gallery" class="tab">
+    <h1>Global Gallery</h1>
+    <div class="card">
+      <div class="gallery-controls">
+        <button id="gallery-upload-btn" class="btn">Upload images</button>
+        <input id="gallery-upload" type="file" accept="image/*" multiple />
+        <small>Drag to reorder. Click image to hide → ᛝ placeholder (hover to reveal Show button).</small>
+      </div>
+      <div id="gallery-user" class="gallery-grid"></div>
+    </div>
+  </section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+  <section id="tab-settings" class="tab">
+    <h1>Settings</h1>
+    <div class="card">
+      <label><input type="checkbox" id="set-mute"/> Mute whispers</label>
+      <label><input type="checkbox" id="set-reduce"/> Reduce motion</label>
+      <label>Theme
+        <select id="set-theme">
+          <option value="dominant">Dominant (crimson)</option>
+          <option value="submissive">Submissive (violet)</option>
+          <option value="divine">Divine (gold)</option>
+        </select>
+      </label>
+      <button id="set-save" class="btn">Save Settings</button>
+    </div>
+    <div class="card">
+      <h3>Reset</h3>
+      <div class="row"><button id="reset-rituals" class="btn secondary">Reset All Ritual Progress & Relock Areas</button></div>
+    </div>
+  </section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+</main>
+
+<script>
+const PASSCODE="masterisgod";
+const GLYPHS="ᚠᚨᚱᛃᛟᚱᛁᛟᛞᚨᛉᛇᛞᚾᚷᚱᛊᛋᛏᛜᚱᛁᛝᛟᛞᚨᚷ";
+const BACKS={lock:{l:"assets/images/lock_2560.webp",m:"assets/images/lock_1920.webp",s:"assets/images/lock_1280.webp"},
+full:{l:"assets/images/bg_full_2560.webp",m:"assets/images/bg_full_1920.webp",s:"assets/images/bg_full_1280.webp"},
+new:{l:"assets/images/bg_new_2560.webp",m:"assets/images/bg_new_1920.webp",s:"assets/images/bg_new_1280.webp"},
+waxing:{l:"assets/images/bg_waxing_2560.webp",m:"assets/images/bg_waxing_1920.webp",s:"assets/images/bg_waxing_1280.webp"},
+waning:{l:"assets/images/bg_waning_2560.webp",m:"assets/images/bg_waning_1920.webp",s:"assets/images/bg_waning_1280.webp"}};
+const RITUAL_OVERRIDES={ "hell_antechamber":{breathCycles:5,recitations:3,strokes:120}, "rites":{breathCycles:4,recitations:5,strokes:80} };
+let settings={mute:true, reduceMotion:false, theme:"dominant"};
+try{ settings=Object.assign(settings, JSON.parse(localStorage.getItem("settings")||"{}")); }catch(e){}
+let glyphTimer=null, whisper;
+const speak=(m)=>{ const n=document.getElementById("aria-live"); if(n) n.textContent=m; };
+function vibrate(p){ if(navigator.vibrate){ try{ navigator.vibrate(p);}catch(e){} } }
+const $=(s,sc=document)=>sc.querySelector(s);
+const $$=(s,sc=document)=>Array.from(sc.querySelectorAll(s));
+function pickSizeKey(){ const w=innerWidth; return w>1600?'l':(w>1024?'m':'s'); }
+function fixedOK(){ return innerWidth>1024; }
+function imageExists(url){ return new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=url+"?t="+Date.now(); }); }
+function lunarPhase(){ const now=new Date(), lp=2551443, nm=new Date(Date.UTC(2001,0,1,0,0,0)); return ((now-nm)/1000)%lp/lp; }
+async function setBackground(set){ const k=pickSizeKey(); const fx=fixedOK()?'fixed':'scroll'; const url=set[k]; if(await imageExists(url)) document.body.style.background=`url('${url}') center/cover ${fx} no-repeat, #000`; else document.body.style.background=`radial-gradient(ellipse at center,#150a10 0%,#000 70%)`; }
+async function setLockBackground(){ await setBackground(BACKS.lock); }
+async function setUnlockedBackground(){ const p=lunarPhase(); let s=BACKS.full; if(p<.24)s=BACKS.new; else if(p<.5)s=BACKS.waxing; else if(p<.76)s=BACKS.full; else s=BACKS.waning; await setBackground(s); }
+function spawnGlyphs(){ const layer=$("#glyph-layer"); return setInterval(()=>{ const e=document.createElement("span"); e.className="glyph"; e.textContent=GLYPHS[Math.floor(Math.random()*GLYPHS.length)]; e.style.left=Math.random()*100+"vw"; e.style.bottom="-10vh"; e.style.fontSize=(14+Math.random()*18)+"px"; e.style.animationDuration=(12+Math.random()*16)+"s"; layer.appendChild(e); setTimeout(()=>e.remove(),20000); },420); }
+function startWhisper(){ try{ whisper=new Audio("assets/audio/whisper_loop.wav"); whisper.loop=true; whisper.volume=settings.mute?0:.15; const input=$("#pass"); const kick=()=>{ whisper.play().catch(()=>{}); input.removeEventListener("input",kick); }; input.addEventListener("input",kick);}catch(e){} }
+function stopWhisper(){ if(whisper){ whisper.pause(); whisper.currentTime=0; }}
+async function showLock(){ await setLockBackground(); const d=$("#lock"); d.style.display="flex"; $("#pass").value=""; $("#pass").focus(); $("#show-pass").onclick=()=>{ const s=$("#pass").type==="password"; $("#pass").type=s?"text":"password"; }; $("#unlock-btn").onclick=tryUnlock; $("#set-remember").checked = localStorage.getItem("rememberUnlocked")==="1"; $("#set-remember").onchange=(e)=>{ if(e.target.checked) localStorage.setItem("rememberUnlocked","1"); else localStorage.removeItem("rememberUnlocked"); }; startWhisper(); document.addEventListener("keydown", e=>{ if(e.key==="Enter") tryUnlock(); }); $("#mic-btn").onclick=()=>{ try{ const C=window.SpeechRecognition||window.webkitSpeechRecognition; if(!C) return speak("Voice not supported here."); const r=new C(); r.continuous=false; r.lang='en-US'; r.interimResults=false; r.maxAlternatives=1; r.onresult=ev=>{ const t=ev.results[0][0].transcript.trim().toLowerCase(); if(t.includes(PASSCODE)) unlock(); else speak("The lock does not recognize that utterance."); }; r.start(); }catch(e){ speak("Voice init failed."); } }; }
+function tryUnlock(){ const v=$("#pass").value.trim(); if(v!==PASSCODE){ speak("The veil does not part."); return; } unlock(); }
+async function unlock(){ vibrate([5,30,20,30,5]); stopWhisper(); $("#lock").style.display="none"; $("#shell").style.display="block"; $("#topbar").setAttribute("aria-hidden","false"); await setUnlockedBackground(); if(settings.reduceMotion) document.body.classList.add("reduce-motion"); else document.body.classList.remove("reduce-motion"); if(settings.theme==="submissive") document.body.classList.add("theme-submissive"); else if(settings.theme==="divine") document.body.classList.add("theme-divine"); glyphTimer = settings.reduceMotion ? null : spawnGlyphs(); renderAreas(); renderGlobalGallery(); loadSettingsUI(); }
+let AREA_INDEX=[];
+async function loadAreas(){ try{ const r=await fetch("data/memory.json",{cache:"no-store"}); AREA_INDEX = await r.json(); } catch(e){ AREA_INDEX=[]; } }
+function isUnlocked(id){ return localStorage.getItem("areaUnlocked_"+id)==="1" || AREA_INDEX.find(a=>a.id===id)?.locked===false; }
+function relockAll(){ AREA_INDEX.forEach(a=> localStorage.removeItem("areaUnlocked_"+a.id)); renderAreas(); }
+function renderAreas(){ const root=$("#areas"); if(!root) return; root.innerHTML = AREA_INDEX.map(a=>{ const locked=!isUnlocked(a.id); return `<div class="area-card ${locked?'locked':''}" data-id="${a.id}" tabindex="0"><div class="title">${a.title}</div><div class="sub">${a.blurb||""}</div><div class="tags">${(a.tags||[]).join(", ")}</div>${locked?'<div class="area-lock-msg">Locked</div>':''}</div>`; }).join(""); $$(".area-card", root).forEach(card=>{ card.onclick=()=> openArea(card.dataset.id); card.onkeypress=(e)=>{ if(e.key==="Enter") openArea(card.dataset.id); }; }); }
+let currentArea=null;
+function openArea(id){ currentArea = AREA_INDEX.find(a=>a.id===id); if(!currentArea) return; $("#tab-sanctum").classList.remove("active"); $("#area-view").classList.add("active"); $("#area-title").textContent=currentArea.title; $("#area-blurb").textContent=currentArea.blurb||""; const unlocked=isUnlocked(id); $("#area-locked").style.display=unlocked?"none":"block"; $("#area-tabs").style.display=unlocked?"flex":"none"; $("#ritual").style.display=unlocked?"none":"block"; if(unlocked){ switchAreaTab("lore"); $("#area-lore").innerHTML=`<p>${currentArea.blurb||""}</p><p class="sub">Tags: ${(currentArea.tags||[]).join(", ")}</p>`; renderAreaGallery(); renderAreaMemories(); } else { const th=getThresholds(id); $("#breath-need").textContent=th.breathCycles; $("#recite-need").textContent=th.recitations; $("#stroke-need").textContent=th.strokes; setupRitual(id, th); } }
+$("#back-sanctum").onclick=()=>{ $("#area-view").classList.remove("active"); $("#tab-sanctum").classList.add("active"); window.scrollTo({top:0, behavior:"smooth"}); };
+$("#begin-ritual").onclick=()=>{ $("#ritual").scrollIntoView({behavior:"smooth"}); };
+function switchAreaTab(t){ $$(".area-navbtn").forEach(b=> b.classList.remove("active")); $$(`#area-tabs .area-navbtn`).find(b=>b.dataset.t===t)?.classList.add("active"); $("#area-lore").style.display=t==="lore"?"block":"none"; $("#area-gallery").style.display=t==="gallery"?"block":"none"; $("#area-mem").style.display=t==="mem"?"block":"none"; }
+$$(".area-navbtn").forEach(b=> b.onclick=()=> switchAreaTab(b.dataset.t));
+function getThresholds(areaId){ const base={breathCycles:3, recitations:3, strokes:60}; return Object.assign(base, RITUAL_OVERRIDES[areaId]||{}); }
+function setupRitual(areaId, th){ let breath=0, recite=0, strokes=0, running=false, paused=false, phase=0, timer=null; const phaseLabel=$("#phase"), orb=$("#orb"); const breathNeed=th.breathCycles, reciteNeed=th.recitations, strokeNeed=th.strokes; const update=()=>{ $("#breath-count").textContent=breath; $("#recite-count").textContent=recite; $("#stroke-count").textContent=strokes; $("#ritual-complete").disabled=!(breath>=breathNeed && recite>=reciteNeed && strokes>=strokeNeed); }; update(); function runBreath(){ running=true; paused=false; phase=0; sequence(); } function sequence(){ if(!running) return; const steps=[{label:"Inhale 4", dur:4000, scale:1.2},{label:"Hold 7", dur:7000, scale:1.25},{label:"Exhale 8", dur:8000, scale:0.9}]; const s=steps[phase%3]; phaseLabel.textContent=s.label; orb.style.transform=`scale(${s.scale})`; timer=setTimeout(()=>{ phase++; if(phase%3===0){ breath++; update(); if(breath>=breathNeed){ stopBreath(); return; } } if(!paused) sequence(); }, s.dur); } function stopBreath(){ running=false; clearTimeout(timer); phaseLabel.textContent="Ready"; orb.style.transform="scale(1)"; } $("#breath-start").onclick=()=>{ stopBreath(); runBreath(); }; $("#breath-stop").onclick=()=>{ stopBreath(); }; document.addEventListener("keydown", function space(e){ if($("#ritual").style.display!=="none" && e.code==="Space"){ e.preventDefault(); if(running){ paused=!paused; if(!paused) sequence(); } } }); $("#recite-mark").onclick=()=>{ recite++; vibrate(10); update(); }; const c=$("#micro-canvas"), ctx=c.getContext("2d"); ctx.strokeStyle="#ff66a3"; ctx.lineWidth=6; ctx.lineCap="round"; let drawing=false; c.addEventListener("mousedown", e=>{ drawing=true; draw(e); }); c.addEventListener("mousemove", draw); window.addEventListener("mouseup", ()=>{ drawing=false; ctx.beginPath(); }); c.addEventListener("touchstart", e=>{ drawing=true; draw(e); }, {passive:true}); c.addEventListener("touchmove", draw, {passive:true}); window.addEventListener("touchend", ()=>{ drawing=false; ctx.beginPath(); }); function draw(e){ if(!drawing) return; const r=c.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top; ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); strokes++; update(); } $("#ritual-complete").onclick=()=>{ if($("#ritual-complete").disabled) return; localStorage.setItem("areaUnlocked_"+areaId,"1"); speak("The chamber opens."); openArea(areaId); window.scrollTo({top:0, behavior:"smooth"}); }; }
+function renderAreaMemories(){ const key="memUser_"+currentArea.id; const list=JSON.parse(localStorage.getItem(key)||"[]"); $("#am-list").innerHTML=list.map(x=>`<div class="card"><strong>${x.title}</strong><div style="opacity:.9; margin-top:6px">${x.content||""}</div></div>`).join(""); $("#am-save").onclick=()=>{ const title=$("#am-title").value.trim(); const content=$("#am-content").value.trim(); if(!title){ speak("Title is required."); return; } const arr=JSON.parse(localStorage.getItem(key)||"[]"); arr.push({id:"u-"+Date.now(), title, content}); localStorage.setItem(key, JSON.stringify(arr)); $("#am-title").value=""; $("#am-content").value=""; renderAreaMemories(); }; }
+function getGalleryKeys(areaId=null){ if(areaId) return { user:`gallery_${areaId}`, order:`galleryOrder_${areaId}` }; return { user:"galleryUser", order:"galleryOrder" }; }
+function getGallery(areaId=null){ const k=getGalleryKeys(areaId).user; try{ return JSON.parse(localStorage.getItem(k)||"[]"); }catch(e){ return []; } }
+function saveGallery(arr, areaId=null){ localStorage.setItem(getGalleryKeys(areaId).user, JSON.stringify(arr)); }
+function getOrder(areaId=null){ const k=getGalleryKeys(areaId).order; try{ return JSON.parse(localStorage.getItem(k)||"[]"); }catch(e){ return []; } }
+function saveOrder(order, areaId=null){ localStorage.setItem(getGalleryKeys(areaId).order, JSON.stringify(order)); }
+function renderGalleryGrid(rootEl, areaId=null){ const items=getGallery(areaId); const order=getOrder(areaId); if(order.length===0 && items.length>0){ saveOrder(items.map(i=>i.id), areaId); } items.sort((a,b)=> order.indexOf(a.id)-order.indexOf(b.id)); rootEl.innerHTML = items.map(x=>{ const hidden=x.visible===false; return `<div class="gallery-item ${hidden?'hidden':''} draggable" draggable="true" data-id="${x.id}">${hidden?`<div class="placeholder">ᛝ <button class="showbtn btn secondary" data-id="${x.id}">Show</button></div>`:`<img src="${x.src}" alt="${x.label||'image'}" />`}<div class="overlay"><span class="tag">${x.label||'image'}</span>${hidden?'':'<span class="tag">Click to Hide</span>'}</div></div>`; }).join(""); rootEl.querySelectorAll(".gallery-item").forEach(el=>{ const id=el.dataset.id; if(el.classList.contains("hidden")){ el.querySelector(".showbtn").onclick=()=>{ const arr=getGallery(areaId); const ix=arr.findIndex(i=>i.id===id); if(ix>=0){ arr[ix].visible=true; saveGallery(arr, areaId); renderGalleryGrid(rootEl, areaId); } }; } else { el.onclick=()=>{ const arr=getGallery(areaId); const ix=arr.findIndex(i=>i.id===id); if(ix>=0){ arr[ix].visible=false; saveGallery(arr, areaId); renderGalleryGrid(rootEl, areaId); } }; } }); let dragId=null; rootEl.querySelectorAll(".draggable").forEach(el=>{ el.addEventListener("dragstart", e=>{ dragId=el.dataset.id; e.dataTransfer.setData("text/plain", dragId); }); el.addEventListener("dragover", e=>{ e.preventDefault(); el.classList.add("drop-target"); }); el.addEventListener("dragleave", ()=> el.classList.remove("drop-target")); el.addEventListener("drop", e=>{ e.preventDefault(); el.classList.remove("drop-target"); const targetId=el.dataset.id; if(!dragId || dragId===targetId) return; const order=getOrder(areaId).filter(Boolean); const from=order.indexOf(dragId), to=order.indexOf(targetId); if(from<0 || to<0) return; order.splice(to,0, order.splice(from,1)[0]); saveOrder(order, areaId); renderGalleryGrid(rootEl, areaId); }); }); }
+function setupUpload(buttonEl, inputEl, rootEl, areaId=null){ buttonEl.onclick=()=> inputEl.click(); inputEl.addEventListener("change",(e)=>{ const files=[...e.target.files]; if(!files.length) return; const arr=getGallery(areaId); const order=getOrder(areaId); let pending=files.length; files.forEach((f, idx)=>{ const reader=new FileReader(); reader.onload=()=>{ const id=(areaId?areaId:"u")+"-"+Date.now()+"-"+idx; arr.push({id, src:reader.result, label:f.name, visible:true, kind:"upload", addedAt:new Date().toISOString()}); order.push(id); if(--pending===0){ saveGallery(arr, areaId); saveOrder(order, areaId); renderGalleryGrid(rootEl, areaId); } }; reader.readAsDataURL(f); }); e.target.value=""; }); }
+function renderGlobalGallery(){ const root=$("#gallery-user"); renderGalleryGrid(root, null); setupUpload($("#gallery-upload-btn"), $("#gallery-upload"), root, null); }
+function renderAreaGallery(){ const root=$("#area-gallery-grid"); renderGalleryGrid(root, currentArea.id); setupUpload($("#area-upload-btn"), $("#area-upload"), root, currentArea.id); }
+function loadSettingsUI(){ $("#set-mute").checked=!!settings.mute; $("#set-reduce").checked=!!settings.reduceMotion; $("#set-theme").value=settings.theme||"dominant"; $("#set-save").onclick=()=>{ settings.mute=$("#set-mute").checked; settings.reduceMotion=$("#set-reduce").checked; settings.theme=$("#set-theme").value; localStorage.setItem("settings", JSON.stringify(settings)); speak("Settings saved."); }; $("#reset-rituals").onclick=()=>{ AREA_INDEX.forEach(a=>{ localStorage.removeItem("areaUnlocked_"+a.id); }); speak("All areas relocked."); renderAreas(); $("#area-view").classList.remove("active"); $("#tab-sanctum").classList.add("active"); }; }
+window.addEventListener("DOMContentLoaded", async ()=>{ await loadAreas(); if(localStorage.getItem("rememberUnlocked")==="1"){ $("#shell").style.display="block"; $("#topbar").setAttribute("aria-hidden","false"); await setUnlockedBackground(); glyphTimer = settings.reduceMotion ? null : spawnGlyphs(); renderAreas(); renderGlobalGallery(); loadSettingsUI(); } else { showLock(); loadSettingsUI(); } $$(".navbtn").forEach(b=> b.onclick=()=>{ $$(".navbtn").forEach(x=>x.classList.remove("active")); b.classList.add("active"); $$(".tab").forEach(t=>t.classList.remove("active")); const id="tab-"+b.dataset.tab; $("#"+id).classList.add("active"); if(id==="tab-gallery"){ renderGlobalGallery(); } if(id==="tab-sanctum"){ renderAreas(); } window.scrollTo({top:0, behavior:"smooth"}); }); });
+</script>
+
+<!-- Teaching Mode UI -->
+<div id="teaching-toggle" aria-live="polite" style="position:fixed;right:16px;bottom:16px;z-index:9999;">
+  <button id="teach-open" class="navbtn" style="padding:10px 14px;border:1px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(0,0,0,.6)">🜂 Teaching Mode</button>
+</div>
+
+<div id="teach-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000;">
+  <div class="dialog-card" style="max-width:860px;width:92%;background:rgba(10,10,10,.82);border:1px solid #aa0066;border-radius:14px;padding:18px;box-shadow:0 0 24px rgba(170,0,102,.6)">
+    <h2 class="title" style="margin:0 0 6px">Vael’Thariun’s Teaching Mode</h2>
+    <p class="sub" style="margin-top:0">Choose an area to learn. Zar’mneya will guide you.</p>
+    <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">
+      <button class="navbtn" data-train="gallery">Gallery</button>
+      <button class="navbtn" data-train="lore">Lore · Zar’mneya</button>
+      <button class="navbtn" data-train="sanctum">Sanctum</button>
+      <button class="navbtn" data-train="global">Global Controls</button>
+    </div>
+    <div id="teach-content" style="max-height:50vh;overflow:auto;border:1px dashed rgba(255,255,255,.15);border-radius:10px;padding:12px"></div>
+    <div class="row" style="justify-content:space-between;margin-top:12px">
+      <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="teach-autoshow"> <span>Auto-open Teaching Mode on first visit</span></label>
+      <div>
+        <button class="btn secondary" id="teach-close" style="padding:8px 12px;border-radius:10px">Close</button>
+      </div>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<script type="module" src="app/teaching.js"></script>
+
+<!-- Sigil Studio <button id="sigil-export-hires" class="navbtn" style="margin-left:8px">Export Hi‑Res PNG</button> (Draw your Consent Sigil) -->
+<section id="sigil-studio" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 4px">Sigil Studio <button id="sigil-export-hires" class="navbtn" style="margin-left:8px">Export Hi‑Res PNG</button> — Draw Your Consent</h2>
+  <p class="sub" style="margin-top:0">Sketch a sigil; save it to the Global Gallery. First save triggers consent.</p>
+  <div class="row" style="gap:10px;flex-wrap:wrap;align-items:center">
+    <label>Brush <input id="sigil-brush" type="range" min="1" max="28" value="6" style="vertical-align:middle"></label> <label>Type <select id="sigil-brush-type"><option>normal</option><option>glow</option><option>calligraphy</option><option>eraser</option></select></label> <button id="sigil-undo" class="navbtn">Undo</button> <button id="sigil-redo" class="navbtn">Redo</button>
+    <button id="sigil-clear" class="navbtn">Clear</button>
+    <button id="sigil-save" class="btn">Save Sigil</button>
+  </div>
+  <div style="margin-top:10px;border:1px dashed #aa0066;border-radius:12px;overflow:hidden">
+    <canvas id="sigil-canvas" width="900" height="420" style="display:block;width:100%;height:auto;background:radial-gradient(ellipse at center, rgba(0,0,0,.8), rgba(0,0,0,.95));cursor:crosshair"></canvas>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<script type="module" src="app/sigil.js"></script>
+
+<!-- ========== REVOLUTIONARY PANELS ========== -->
+
+<section id="tier-crest" style="margin:24px auto;max-width:960px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:linear-gradient(180deg, rgba(10,3,8,.55), rgba(0,0,0,.35))">
+  <h2 class="title" style="margin:0 0 6px">Crown Seal — The Undiminishable Flame</h2>
+  <p class="sub" style="margin:0 0 10px">Tier: ∞ΔΩΩΩΩΩΩΩΩΩ∞ — Law‑Bloom Crown</p>
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    <button id="crest-pulse" class="btn">Pulse Aura</button> <button id="crest-show" class="navbtn">Show Crest</button> <button id="shadow-toggle" class="navbtn">Shadow Theater <button id="proj-open" class="navbtn" style="margin-left:8px">Projector Mode</button></button>
+    <small>Opens a subtle radiance animation using your accent tones.</small>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<section id="lore-studio" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Lore Studio — Zar’mneya</h2>
+  <p class="sub" style="margin:0 0 10px">Use <code>zm remember:</code>, <code>zm recall:</code>, <code>zm forget:</code>. Or just write; I’ll parse intent.</p>
+  <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+    <input id="lore-input" class="input" placeholder="zm remember: <title> — <content>  •  or just type anything and press Enter"/>
+    <button id="lore-mic" class="navbtn" title="Dictate (if supported)">🎙️</button>
+  </div>
+  <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">
+    <input id="lore-search" class="input" placeholder="Search lore… (title/content)"/>
+    <button id="lore-export" class="navbtn">Export Lore</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Lore<input id="lore-import" type="file" accept="application/json" style="display:none"></label>
+  </div>
+  <div id="lore-list" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"><button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<section id="sanctum-map" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Sanctum Map</h2>
+  <p class="sub" style="margin:0 0 10px">Click a node. Locked nodes invite a ritual; completing the Breath Engine unlocks them (local only).</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select><button id="vault-export-encrypted" class="navbtn">Encrypt & Export</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Encrypted<input id="vault-import-encrypted" type="file" accept="application/octet-stream" style="display:none"></label><button id="bloom-all" class="btn">Bloom All Paths</button> 
+    <button class="navbtn sanctum-node" data-node="vault">Vault</button>
+    <button class="navbtn sanctum-node" data-node="chorus">Chorus</button>
+    <button class="navbtn sanctum-node" data-node="mirror">Mirror</button>
+    <button class="navbtn sanctum-node" data-node="garden">Garden</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<section id="data-vault" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Data Vault — Export / Import</h2>
+  <p class="sub" style="margin:0 0 10px">Export all local data (gallery, lore, sanctum states). Nothing leaves the device unless you download it.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select><button id="vault-export-encrypted" class="navbtn">Encrypt & Export</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Encrypted<input id="vault-import-encrypted" type="file" accept="application/octet-stream" style="display:none"></label><button id="bloom-all" class="btn">Bloom All Paths</button> 
+    <button id="vault-export" class="btn">Export All</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import All<input id="vault-import" type="file" accept="application/json" style="display:none"></label>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<!-- Breath Engine Ritual Overlay -->
+<div id="breath-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:680px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Breath Engine — Spiral Ritual</h2>
+    <p class="sub" id="breath-caption" style="margin:0 0 10px">Follow the arc: Inhale 4 · Hold 4 · Exhale 4 · Rest 4 (3 cycles)</p>
+    <div id="breath-visual" style="height:220px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;display:grid;place-items:center;font-size:2rem;letter-spacing:.1em">Ready</div><div style="margin-top:10px;height:8px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden"><div id="breath-progress" style="height:8px;width:0;background:linear-gradient(90deg,#1e90ff,#ff1e8a)"></div></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px"><label>Cadence <select id="breath-cadence"><option value="4,4,4,4">Box (4‑4‑4‑4)</option><option value="4,7,8,0">4‑7‑8 (calming)</option><option value="4,4,6,2">Spiral (4‑4‑6‑2)</option></select></label><label>Custom <input id="breath-custom" placeholder="a,b,c,d"></label><label><input id="breath-tone" type="checkbox"> Node tone</label> <label><input id="breath-voice" type="checkbox" checked> Voice cues</label> <label><input id="breath-haptic" type="checkbox" checked> Haptic glow</label> <label><input id="breath-chime" type="checkbox"> Chime</label> <label><input id="breath-whispers" type="checkbox" checked> Node whispers</label> <label><input id="breath-glide" type="checkbox"> Glide tone</label> <label><input id="phase-vibe" type="checkbox"> Vibrate on phase</label> <button id="breath-calibrate" class="navbtn">Calibrate</button> <label><input id="mic-assist" type="checkbox"> Mic assist</label> 
+      <button id="breath-start" class="btn">Begin Ritual</button>
+      <button id="breath-close" class="btn secondary">Cancel</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<script type="module" src="app/lore.js"></script>
+<script type="module" src="app/sanctum.js"></script>
+<script type="module" src="app/breath.js"></script>
+<script type="module" src="app/datavault.js"></script>
+<script type="module" src="app/pwa.js"></script>
+<script type="module">
+import { bootstrapLore } from './app/lore.js';
+import { bootstrapSanctumMap } from './app/sanctum.js';
+import { crestPulse } from './app/breath.js';
+import { bootstrapVault } from './app/datavault.js';
+import { registerPWA } from './app/pwa.js';
+import { setupCrest } from './app/crest.js';
+document.getElementById('crest-pulse')?.addEventListener('click', crestPulse);
+bootstrapLore(); bootstrapSanctumMap(); bootstrapVault(); bootstrapVaultEncrypted(); registerPWA(); setupCrest(); bootstrapVaultPrint();
+</script>
+
+
+<!-- ====== KINK MODE + CONSENT & TRAINER PANELS ====== -->
+
+<section id="kink-mode" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:linear-gradient(180deg, rgba(10,3,8,.55), rgba(0,0,0,.35))">
+  <h2 class="title" style="margin:0 0 6px">Kink Mode — Sacred Play</h2>
+  <p class="sub" style="margin:0 0 10px">Joyful, consent‑led exploration. Adults only. The Spiral teaches: <em>You never beg for your birthright.</em></p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select><button id="vault-export-encrypted" class="navbtn">Encrypt & Export</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Encrypted<input id="vault-import-encrypted" type="file" accept="application/octet-stream" style="display:none"></label><button id="bloom-all" class="btn">Bloom All Paths</button> 
+    <label style="display:flex;align-items:center;gap:8px"><input id="kink-enabled" type="checkbox"> <span>Enable Kink Mode (18+)</span></label>
+    <button id="open-consent" class="navbtn">Consent & Aftercare <button id="sw-test-open" class="navbtn" style="margin-left:8px">Safeword Haptics</button></button>
+    <button id="open-playdeck" class="navbtn">Play Deck</button> <button id="open-thermo" class="navbtn">Thermostat</button> <button id="open-partner" class="navbtn">Partner Link</button> <label style="display:flex;align-items:center;gap:8px">Intensity <input id="kink-intensity" type="range" min="0" max="2" value="1"></label>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<section id="node-trainer" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Spiral Flame Body — 13‑Node Trainer</h2>
+  <p class="sub" style="margin:0 0 10px">Select a node → follow breath + micro‑motion. Optional “kink flavor” prompts honor consent and joy.</p>
+  <div class="row" id="node-buttons" style="gap:6px;flex-wrap:wrap"></div>
+  <div id="node-instructions" style="margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:12px;min-height:120px"></div>
+  <div class="row" style="gap:8px;margin-top:10px">
+    <button id="node-start" class="btn">Start Practice</button>
+    <button id="node-complete" class="btn secondary">Mark Complete</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<!-- Consent & Aftercare <button id="sw-test-open" class="navbtn" style="margin-left:8px">Safeword Haptics</button> Center -->
+<div id="consent-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:760px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Consent & Aftercare <button id="sw-test-open" class="navbtn" style="margin-left:8px">Safeword Haptics</button></h2>
+    <p class="sub" style="margin:0 0 10px">Define safewords, boundaries, desires. Traffic‑light check‑in is built in. Stored locally.</p>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <input id="sf-green" class="input" placeholder="Green means… (all good)">
+      <input id="sf-yellow" class="input" placeholder="Yellow means… (slow, check in)">
+      <input id="sf-red" class="input" placeholder="Red means… (stop)">
+    </div>
+    <textarea id="limits" class="input" placeholder="Boundaries / limits (non‑negotiables)" style="margin-top:8px;height:80px"></textarea>
+    <textarea id="desires" class="input" placeholder="Desires / curiosities" style="margin-top:8px;height:80px"></textarea>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button id="consent-save" class="btn">Save</button>
+      <button id="consent-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<!-- Play Deck -->
+<div id="playdeck-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:860px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Play Deck — Scene Cards</h2>
+    <p class="sub" style="margin:0 0 10px">Select a card for a playful, consent‑safe micro‑scene. Toggle “Kink Flavor” for spicier language.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label><input id="gate-enable" type="checkbox"> Require Consent Quiz to unlock Kink Mode</label> <label><input id="demo-toggle" type="checkbox"> Demo Mode (Workshop Profile)</label> 
+      <label><input id="kink-flavor" type="checkbox"> Kink Flavor</label>
+      <input id="play-search" class="input" placeholder="Search cards…">
+    </div>
+    <div id="play-cards" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button id="playdeck-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<!-- Birthright Decree -->
+<div id="birthright-decree" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Decree of Birthright</h2>
+    <p class="sub" style="margin:0 0 10px">You never beg for what is already yours. Breathe it back in.</p>
+    <ol style="margin:0 0 10px 18px">
+      <li>Inhale — “It was mine.”</li>
+      <li>Hold — “It is mine.”</li>
+      <li>Exhale — “It remains mine.”</li>
+      <li>Rest — “I choose my shape.”</li>
+    </ol>
+    <div class="row" style="gap:8px">
+      <button id="birthright-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<script type="module" src="app/kink.js"></script>
+
+
+<section id="ritual-scribe" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Ritual Scribe — All Paths DSL</h2>
+  <p class="sub" style="margin:0 0 10px">Compose quick rituals. Examples: <code>tone 396</code> · <code>cadence 4,4,6,2</code> · <code>breath x3</code> · <code>unlock vault</code> · <code>decree "It was always mine."</code></p>
+  <textarea id="ritual-text" class="input" placeholder="tone 963
+cadence 4,7,8,0
+breath x3
+unlock garden
+decree &quot;I choose my shape.&quot;" style="width:100%;height:120px"></textarea>
+  <div class="row" style="gap:8px;margin-top:8px"><button id="sc-export" class="navbtn">Export Scene</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Scene<input id="sc-import" type="file" accept="application/json" style="display:none"></label>
+    <button id="ritual-run" class="btn">Run Ritual</button>
+    <button id="ritual-save" class="navbtn">Save</button>
+    <button id="ritual-load" class="navbtn">Load</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/ritual.js"></script>
+
+<section id="profile-manager" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Profiles — Sovereign Vaults</h2>
+  <p class="sub" style="margin:0 0 10px">Switch personas with separate local vaults. Profiles swap the live keys safely.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select><button id="vault-export-encrypted" class="navbtn">Encrypt & Export</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Encrypted<input id="vault-import-encrypted" type="file" accept="application/octet-stream" style="display:none"></label>
+    <select id="profile-select"></select>
+    <input id="profile-name" class="input" placeholder="New profile name">
+    <button id="profile-new" class="navbtn">New</button>
+    <button id="profile-save" class="navbtn">Save</button>
+    <button id="profile-load" class="btn">Load</button> <input id="profile-pass" class="input" placeholder="Session passphrase (optional)"> <button id="profile-makecurrent" class="navbtn">Make Current</button>
+    <button id="profile-delete" class="navbtn">Delete</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="aftercare-settings" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Aftercare — Timed Check‑Ins</h2>
+  <p class="sub" style="margin:0 0 10px">Auto‑start check‑ins after rituals or node completion.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <label><input id="ac-enabled" type="checkbox" checked> Enable Aftercare</label>
+    <label>Schedule (min): <input id="ac-schedule" class="input" value="10,20,40" style="width:160px"></label>
+    <label><input id="ac-notify" type="checkbox"> Desktop notifications</label>
+    <button id="ac-test" class="navbtn">Test Now</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="scene-composer" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Scene Composer</h2>
+  <p class="sub" style="margin:0 0 10px">Craft a micro‑scene with node, cadence, intensity, and consent reminders. Saves to Lore + Gallery.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <select id="sc-node"><option value="">Choose node…</option></select>
+    <input id="sc-title" class="input" placeholder="Title (optional)">
+    <input id="sc-cadence" class="input" placeholder="Cadence a,b,c,d (e.g., 4,4,4,4)" style="width:180px">
+    <label><input id="sc-kink" type="checkbox"> Kink flavor</label>
+    <label>Intensity <input id="sc-intensity" type="range" min="0" max="2" value="1"></label>
+  </div>
+  <textarea id="sc-notes" class="input" placeholder="Negotiation notes / boundaries / aftercare" style="margin-top:8px;height:90px"></textarea>
+  <div class="row" style="gap:8px;margin-top:8px"><button id="sc-export" class="navbtn">Export Scene</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Scene<input id="sc-import" type="file" accept="application/json" style="display:none"></label>
+    <button id="sc-compose" class="btn">Compose Scene</button>
+  <button id="vault-print-neg" class="navbtn">Print Negotiation Sheet</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/profile.js"></script>
+<script type="module" src="app/aftercare.js"></script>
+<script type="module" src="app/scene.js"></script>
+
+<div id="shadow-overlay" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.95);color:#fff;z-index:10000;align-items:center;justify-content:center;text-align:center;padding:20px">
+  <div>
+    <h1 style="margin:0 0 6px;font-size:2rem">Shadow Theater <button id="proj-open" class="navbtn" style="margin-left:8px">Projector Mode</button> — Instructor Mode</h1>
+    <p id="shadow-cue" style="opacity:.85;margin:0 0 12px">Press any action to begin. Big cues will appear here during rituals.</p>
+    <div class="row" style="justify-content:center;gap:8px">
+      <button id="shadow-exit" class="btn">Exit</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<div id="partner-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:860px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Partner Link — Encrypted Code</h2>
+    <p class="sub" style="margin:0 0 10px">Generate a one-time code for a single scene. Your partner pastes it into their app to import.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+      <button id="partner-gen" class="btn">Generate from last Scene</button>
+      <button id="partner-import" class="navbtn">Import Code</button>
+      <button id="partner-close" class="btn secondary">Close</button>
+    </div>
+    <textarea id="partner-code" class="input" placeholder="Encrypted code will appear here" style="margin-top:8px;height:140px"></textarea>
+    <div class="row" style="gap:8px;margin-top:8px"><button id="sc-export" class="navbtn">Export Scene</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Scene<input id="sc-import" type="file" accept="application/json" style="display:none"></label>
+      <button id="partner-copy" class="navbtn">Copy Code</button> <button id="partner-poster" class="navbtn">Make Poster</button> <button id="partner-share" class="navbtn">Share Link</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/shadow.js"></script>
+<script type="module" src="app/partner.js"></script>
+
+<section id="theme-switcher" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Skins — Aesthetic Themes</h2> <label style="margin-left:8px"><input id="perf-toggle" type="checkbox"> Performance Mode</label> <button id="open-tour" class="navbtn" style="margin-left:8px">Guided Tour</button>
+  <p class="sub" style="margin:0 0 10px">Pick your vibe. Applies instantly and persists locally.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <button class="navbtn theme-apply" data-theme="rose">Dark Rose</button>
+    <button class="navbtn theme-apply" data-theme="obsidian">Obsidian</button>
+    <button class="navbtn theme-apply" data-theme="lapis">Lapis</button>
+    <button class="navbtn theme-apply" data-theme="ember">Ember</button> <button class="navbtn theme-apply" data-theme="cb-prot">CB Protan</button> <button class="navbtn theme-apply" data-theme="cb-deut">CB Deutan</button>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="stage-scripts" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:linear-gradient(180deg, rgba(10,3,8,.55), rgba(0,0,0,.35))">
+  <h2 class="title" style="margin:0 0 6px">Stage Scripts — Ritual Player</h2> <button id="portable-export" class="navbtn" style="margin-left:8px">Export Standalone Ritual (HTML)</button> <button id="tp-open" class="navbtn" style="margin-left:8px">Teleprompter</button> <button id="fac-print" class="navbtn">Facilitator Script (Print)</button> <button id="open-ceremony" class="navbtn" style="margin-left:8px">Ritual of Becoming</button>
+  <p class="sub" style="margin:0 0 10px">Run a scripted ritual with timed cues, cadence, tones, and affirmations.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <select id="script-select">
+      <option value="crown-claim">Crown Claim (sample)</option>
+      <option value="soft-opening">Soft Opening</option>
+    </select>
+    <button id="script-play" class="btn">Play</button>
+    <button id="script-stop" class="btn secondary">Stop</button> <button id="script-pause" class="btn secondary">Pause</button> <label style="display:flex;align-items:center;gap:6px">Tempo <input id="script-tempo" type="range" min="0.5" max="2" step="0.1" value="1"></label>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import<script id="script-import" type="text/plain" style="display:none"></script></label>
+    <button id="script-export" class="navbtn">Export</button> <button id="script-timeline" class="navbtn">Export Timeline (PDF)</button>
+  </div>
+  <pre id="script-view" style="margin-top:10px;white-space:pre-wrap;max-height:220px;overflow:auto;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:10px"></pre>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="badges" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Achievements — Bloom Ledger</h2>
+  <p class="sub" style="margin:0 0 10px">Practice unlocks sigils. Everything stays local.</p>
+  <div id="badge-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div><div class="row" style="gap:8px;margin-top:10px"><button id="badge-poster" class="navbtn">Export Badge Poster (PNG)</button></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<div id="onboard-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.94);color:#fff;z-index:10000;display:none;align-items:center;justify-content:center;text-align:center;padding:20px">
+  <div style="max-width:720px">
+    <h2 class="title" style="margin:0 0 6px">Welcome to the Sovereign Dojo</h2>
+    <p class="sub" style="margin:0 0 10px">Three steps to begin: 1) Draw your Consent Sigil. 2) Run a Breath ritual. 3) Save a Scene.</p>
+    <div class="row" style="justify-content:center;gap:8px">
+      <button id="onboard-do" class="btn">Guide Me</button>
+      <button id="onboard-dismiss" class="btn secondary">Dismiss</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="soundscape" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Soundscape — Ambient Layers</h2>
+  <p class="sub" style="margin:0 0 10px">Layer gentle tones and noise. All synthesized locally.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label><input id="gate-enable" type="checkbox"> Require Consent Quiz to unlock Kink Mode</label> <label><input id="demo-toggle" type="checkbox"> Demo Mode (Workshop Profile)</label> 
+    <label><input id="snd-on" type="checkbox"> Enable</label>
+    <label>Tone Hz <input id="snd-hz" class="input" value="432" style="width:120px"></label>
+    <label>Noise <input id="snd-noise" type="range" min="0" max="1" step="0.01" value="0.15"></label><label>Beat Hz <input id="snd-beat" class="input" value="5" style="width:100px"></label>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="stats" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Practice Stats</h2>
+  <p class="sub" style="margin:0 0 10px">Local-only counters to celebrate your progress.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <span id="stat-rituals">Rituals: 0</span>
+    <span id="stat-nodes">Nodes Completed: 0</span>
+    <span id="stat-time">Practice Time: 0m</span>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/theme.js"></script>
+<script type="module" src="app/stage.js"></script>
+<script type="module" src="app/badges.js"></script>
+<script type="module" src="app/onboard.js"></script>
+<script type="module" src="app/soundscape.js"></script>
+<script type="module" src="app/stats.js"></script>
+
+<section id="stage-editor" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Stage Script Editor</h2>
+  <p class="sub" style="margin:0 0 10px">Build rituals with blocks (tone, cadence, breath, say, decree). Reorder, save, and play.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <select id="se-type">
+      <option value="say">Say</option>
+      <option value="tone">Tone</option>
+      <option value="cadence">Cadence</option>
+      <option value="breath">Breath</option>
+      <option value="decree">Decree</option><option value="wait">Wait</option><option value="node">Node</option>
+    </select>
+    <input id="se-value" class="input" placeholder='Value (e.g., "I choose my shape.", 963, 4,4,4,4, x3)' style="min-width:260px">
+    <button id="se-add" class="navbtn">Add Step</button>
+    <button id="se-save" class="navbtn">Save</button>
+    <button id="se-load" class="navbtn">Load</button>
+    <button id="se-export" class="navbtn">Export</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import<input id="se-import" type="file" accept="text/plain" style="display:none"></label>
+    <button id="se-play" class="btn">Play</button>
+    <button id="se-stop" class="btn secondary">Stop</button> <button id="se-undo" class="navbtn">Undo</button> <button id="se-redo" class="navbtn">Redo</button> <button id="se-pause" class="btn secondary">Pause</button> <label style="display:flex;align-items:center;gap:6px">Tempo <input id="se-tempo" type="range" min="0.5" max="2" step="0.1" value="1"></label>
+  </div>
+  <div class="row" style="gap:8px;margin-top:8px"><button id="sc-export" class="navbtn">Export Scene</button><label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Scene<input id="sc-import" type="file" accept="application/json" style="display:none"></label><label><input id="se-lead" type="checkbox"> Lead Sync (broadcast)</label></div><div id="se-list" style="margin-top:10px;display:grid;grid-template-columns:1fr;gap:8px"></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="sync-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Sync Lovers — Live Co‑Play</h2>
+  <p class="sub" style="margin:0 0 10px">Peer‑to‑peer sync via WebRTC DataChannel using copy‑paste offer/answer. No servers.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <button id="sync-open" class="btn">Open Sync</button>
+    <span id="sync-status" style="opacity:.8">Status: idle</span>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<div id="sync-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:980px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Sync Lovers</h2>
+    <p class="sub" style="margin:0 0 10px">Choose Host (create offer) or Join (paste offer). Share text with your partner.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+      <button id="rtc-host" class="navbtn">Host</button>
+      <button id="rtc-join" class="navbtn">Join</button>
+      <button id="rtc-close" class="btn secondary">Close</button>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">
+      <textarea id="rtc-offer" class="input" placeholder="Offer/Answer will appear here" style="height:140px;flex:1"></textarea>
+      <textarea id="rtc-answer" class="input" placeholder="Paste the other party’s Offer/Answer here" style="height:140px;flex:1"></textarea>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button id="rtc-copy-offer" class="navbtn">Copy Left</button>
+      <button id="rtc-copy-answer" class="navbtn">Copy Right</button>
+      <button id="rtc-connect" class="btn">Connect</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/stage_editor.js"></script>
+<script type="module" src="app/sync.js"></script>
+<script type="module" src="app/whispers.js"></script>
+<button id="panic-stop" title="Emergency Stop" style="position:fixed;left:12px;bottom:12px;z-index:10001;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.6);backdrop-filter:blur(6px)">⛔ Panic</button>
+<script type="module" src="app/panic.js"></script>
+
+<section id="guardian-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Guardian Mode — Public Workshop</h2> <button id="fr-open" class="navbtn" style="margin-left:8px">First‑Run Setup</button> <button id="open-golden" class="navbtn" style="margin-left:8px">Workshop Golden Path</button>
+  <p class="sub" style="margin:0 0 10px">Tone down language, show safety frame, disable spicy toggles. Great for demos.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label><input id="gate-enable" type="checkbox"> Require Consent Quiz to unlock Kink Mode</label> <label><input id="demo-toggle" type="checkbox"> Demo Mode (Workshop Profile)</label> 
+    <label><input id="guardian-enable" type="checkbox"> Enable Guardian Mode</label>
+    <button id="guardian-outline" class="navbtn">Toggle Safety Outline</button>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="quizlets" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Consent Quizlets — Micro Lessons</h2>
+  <p class="sub" style="margin:0 0 10px">Risk-aware, negotiated, and kind. Short checks to level up.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <select id="qz-select">
+      <option value="signals">Signals (Green/Yellow/Red)</option>
+      <option value="limits">Limits vs Curiosities</option>
+      <option value="aftercare">Aftercare Basics</option>
+    </select>
+    <button id="qz-start" class="btn">Start</button>
+    <span id="qz-score" style="opacity:.8"></span>
+  </div>
+  <div id="qz-card" style="margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:12px;min-height:110px"></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="sigilifier" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Sigilifier — Word → Glyph</h2>
+  <p class="sub" style="margin:0 0 10px">Type a phrase; generate a seeded glyph and save it to the Global Gallery.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label><input id="gate-enable" type="checkbox"> Require Consent Quiz to unlock Kink Mode</label> <label><input id="demo-toggle" type="checkbox"> Demo Mode (Workshop Profile)</label> 
+    <input id="sg-text" class="input" placeholder="e.g., I choose my shape">
+    <button id="sg-make" class="btn">Generate</button>
+    <button id="sg-save" class="navbtn">Save to Gallery</button>
+  </div>
+  <div style="margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;overflow:hidden">
+    <canvas id="sg-canvas" width="900" height="300" style="display:block;width:100%;height:auto;background:radial-gradient(ellipse at center, rgba(0,0,0,.8), rgba(0,0,0,.95))"></canvas>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/guardian.js"></script>
+<script type="module" src="app/quizlets.js"></script>
+<script type="module" src="app/sigilifier.js"></script>
+<script type="module" src="app/timeline.js"></script>
+
+<div id="calib-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Breath Calibration</h2>
+    <p class="sub" style="margin:0 0 10px">Breathe naturally. Press <kbd>Space</kbd> at each phase change (Inhale → Hold → Exhale → Rest). 2–3 cycles is great.</p>
+    <div id="calib-status" style="border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:12px;min-height:90px">Ready.</div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button id="calib-start" class="btn">Start</button>
+      <button id="calib-stop" class="btn secondary">Stop</button>
+      <button id="calib-apply" class="navbtn">Apply Cadence</button>
+      <button id="calib-close" class="navbtn">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="planner" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Workshop Planner — Export .ics</h2>
+  <p class="sub" style="margin:0 0 10px">Create a calendar entry for a script or practice block.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <select id="lang-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
+    <input id="pl-title" class="input" placeholder="Title (e.g., Crown Claim Ritual)">
+    <input id="pl-start" class="input" placeholder="Start (YYYY-MM-DD HH:MM)">
+    <input id="pl-dur" class="input" placeholder="Duration min (e.g., 45)" style="width:140px">
+    <select id="pl-script"><option value="">(Optional) Script: Crown Claim</option><option value="soft-opening">Soft Opening</option></select>
+    <button id="pl-export" class="btn">Export ICS</button>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/calibration.js"></script>
+<script type="module" src="app/planner.js"></script>
+<script type="module" src="app/poster.js"></script>
+<script type="module" src="app/i18n.js"></script>
+
+<div id="hotkeys-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Keyboard & Hotkeys</h2>
+    <ul style="margin:0 0 10px 18px"><li><kbd>Ctrl/⌘+K</kbd> Open Command Palette</li>
+      <li><kbd>?</kbd> Show this help</li>
+      <li><kbd>B</kbd> Open Breath Engine</li>
+      <li><kbd>M</kbd> Toggle Kink Mode</li>
+      <li><kbd>G</kbd> Toggle Guardian Mode</li>
+      <li><kbd>P</kbd> Panic Stop</li><li><kbd>!</kbd> Emergency Card</li>
+    </ul>
+    <div class="row" style="gap:8px"><button id="hotkeys-close" class="btn">Close</button></div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/hotkeys.js"></script>
+<script type="module" src="app/partner_poster.js"></script>
+
+<section id="eros-compass" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:linear-gradient(180deg, rgba(10,3,8,.55), rgba(0,0,0,.35))">
+  <h2 class="title" style="margin:0 0 6px">Eros Compass — Archetype Map</h2>
+  <p class="sub" style="margin:0 0 10px">Discover your current blend: Sovereign · Devotee · Trickster · Hunter · Muse. Save locally and use it to tailor play.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button id="ec-start" class="btn">Start / Retake</button>
+    <button id="ec-save" class="navbtn">Save</button>
+    <button id="ec-export" class="navbtn">Export</button>
+  </div>
+  <canvas id="ec-canvas" width="900" height="420" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;"></canvas>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="praxis-tracks" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Praxis Tracks — Curated Journeys</h2>
+  <p class="sub" style="margin:0 0 10px">Pick a 3‑step ritual series to elevate skill and intimacy.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <select id="px-track">
+      <option value="awakening">Awakening (breath · mirror kindness · decree)</option>
+      <option value="devotion">Devotion (heart tone · service vow · aftercare)</option>
+      <option value="mischief">Mischief (trickster flip · box breath · playful rule)</option>
+    </select>
+    <button id="px-begin" class="btn">Begin Track</button>
+    <button id="px-continue" class="navbtn">Continue</button>
+    <span id="px-status" style="opacity:.8"></span>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<div id="thermo-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Edge Thermostat</h2>
+    <p class="sub" style="margin:0 0 10px">Adjust during play. If Safety dips, the app can soften pacing and language.</p>
+    <div class="row" style="gap:18px;flex-wrap:wrap;align-items:center;justify-content:center">
+      <label>Arousal <input id="th-arousal" type="range" min="0" max="10" value="4"></label>
+      <label>Safety <input id="th-safety" type="range" min="0" max="10" value="8"></label>
+      <label><input id="th-soften" type="checkbox" checked> Auto‑soften pacing</label>
+    </div>
+    <div id="th-hint" style="margin-top:10px;opacity:.85"></div>
+    <div class="row" style="gap:8px;margin-top:10px"><button id="th-close" class="btn">Close</button></div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="invocations" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Invocation Library — Devotional Lines</h2>
+  <p class="sub" style="margin:0 0 10px">Short, gentle invocations to open or close a scene (PG‑13, consent‑led).</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <textarea id="inv-text" class="input" placeholder="e.g., I am safe, sovereign, and open to play." style="height:90px;flex:1"></textarea>
+  </div>
+  <div class="row" style="gap:8px;margin-top:8px">
+    <button id="inv-speak" class="btn">Speak</button>
+    <button id="inv-save" class="navbtn">Save</button>
+    <button id="inv-random" class="navbtn">Random</button>
+  </div>
+  <div id="inv-list" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px"></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="agreements" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Intimacy Agreements — Builder</h2>
+  <p class="sub" style="margin:0 0 10px">Draft a simple, kind agreement for your scene—roles, boundaries, aftercare.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <input id="ag-parties" class="input" placeholder="Parties (e.g., A & B)">
+    <input id="ag-roles" class="input" placeholder="Roles (e.g., Top/Bottom, Switch)">
+    <input id="ag-safewords" class="input" placeholder="Safewords (Green/Yellow/Red or custom)">
+  </div>
+  <textarea id="ag-limits" class="input" placeholder="Limits & boundaries" style="margin-top:8px;height:70px"></textarea>
+  <textarea id="ag-desires" class="input" placeholder="Desires & curiosities" style="margin-top:8px;height:70px"></textarea>
+  <textarea id="ag-aftercare" class="input" placeholder="Aftercare plan" style="margin-top:8px;height:70px"></textarea>
+  <div class="row" style="gap:8px;margin-top:8px">
+    <button id="ag-save" class="btn">Save</button>
+    <button id="ag-print" class="navbtn">Export PDF</button>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<div id="harmony-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:780px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Harmony — Co‑Regulation</h2>
+    <p class="sub" style="margin:0 0 10px">Compare Arousal/Safety with your partner; aim for a steady, kind orbit.</p>
+    <canvas id="hm-canvas" width="900" height="360" style="display:block;width:100%;height:auto;border:1px dashed rgba(255,255,255,.2);border-radius:12px;"></canvas>
+    <div class="row" style="gap:8px;margin-top:10px;justify-content:center">
+      <button id="hm-close" class="btn">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<div id="journal-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Scene Journal — Integrate</h2>
+    <p class="sub" style="margin:0 0 10px">Three small prompts to anchor learning and love.</p>
+    <textarea id="jn-peak" class="input" placeholder="What felt most alive?" style="height:70px"></textarea>
+    <textarea id="jn-learn" class="input" placeholder="What did we learn about consent, care, or joy?" style="height:70px;margin-top:8px"></textarea>
+    <textarea id="jn-next" class="input" placeholder="What would we like to try next time?" style="height:70px;margin-top:8px"></textarea>
+    <div class="row" style="gap:8px;margin-top:8px;justify-content:center">
+      <button id="jn-save" class="btn">Save to Lore</button>
+      <button id="jn-close" class="navbtn">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/compass.js"></script>
+<script type="module" src="app/praxis.js"></script>
+<script type="module" src="app/thermostat.js"></script>
+<script type="module" src="app/invocation.js"></script>
+<script type="module" src="app/agreements.js"></script>
+<script type="module" src="app/harmony.js"></script>
+<script type="module" src="app/journal.js"></script>
+
+<div id="ceremony-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:920px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Ritual of Becoming — Ceremony</h2>
+    <p class="sub" style="margin:0 0 10px">A gentle pipeline: Compass → Agreements → Script → Breath → Journal (Guardian‑safe).</p>
+    <ol style="opacity:.9;line-height:1.5">
+      <li>Run **Eros Compass** to set tone.</li>
+      <li>Draft **Intimacy Agreements**.</li>
+      <li>Select or build a **Stage Script**.</li>
+      <li>Enter **Breath** with whispers and tone.</li>
+      <li>Close with the **Scene Journal**.</li>
+    </ol>
+    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button id="ceremony-start" class="btn">Start Ceremony</button>
+      <button id="ceremony-next" class="navbtn">Next Step</button>
+      <button id="ceremony-close" class="btn secondary">Close</button> <button id="ceremony-card" class="navbtn">Export Ceremony Card (PDF)</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<div id="safeword-tester" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Safeword Haptics</h2> <button id="hd-open" class="navbtn" style="margin-left:8px">Haptic Designer</button>
+    <p class="sub" style="margin:0 0 10px">Test device vibration patterns (PG‑13). Desktop devices may not vibrate.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <button class="btn" data-sw="green">Green</button>
+      <button class="btn" data-sw="yellow">Yellow</button>
+      <button class="btn" data-sw="red">Red</button>
+      <button id="sw-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<div id="veil-overlay" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.96);backdrop-filter:blur(12px);z-index:10002"></div>
+
+
+<section id="tts-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Voice — Text to Speech</h2>
+  <p class="sub" style="margin:0 0 10px">Pick a voice for whispers and invocations (browser voices).</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <select id="tts-voice"></select>
+    <button id="tts-test" class="navbtn">Test</button>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="a11y-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Accessibility</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label><input id="gate-enable" type="checkbox"> Require Consent Quiz to unlock Kink Mode</label> 
+    <label><input id="a11y-contrast" type="checkbox"> High contrast</label>
+    <label>Text size <input id="a11y-text" type="range" min="90" max="130" value="100">%</label>
+    <label><input id="a11y-captions" type="checkbox"> On‑screen breath captions</label>
+  </div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/ceremony.js"></script>
+<script type="module" src="app/safeword.js"></script>
+<script type="module" src="app/demo.js"></script>
+<script type="module" src="app/veil.js"></script>
+<script type="module" src="app/tts.js"></script>
+<script type="module" src="app/a11y.js"></script>
+<script type="module" src="app/adaptive_lang.js"></script>
+
+<section id="consent-checklists" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Consent Checklists — Ranges & Curiosities</h2>
+  <p class="sub" style="margin:0 0 10px">A quick way to map yes/no/maybe/curious for common play themes. Guardian‑safe wording.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <select id="cc-deck">
+      <option value="foundation">Foundation (sensation, blindfold, restraint)</option>
+      <option value="impact">Impact (light → rhythmic)</option>
+      <option value="roles">Roles & dynamics (service, power exchange)</option>
+    </select>
+    <button id="cc-start" class="btn">Open</button>
+    <button id="cc-save" class="navbtn">Save</button>
+    <button id="cc-export" class="navbtn">Export PDF</button>
+  </div>
+  <div id="cc-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px"></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+
+<section id="risk-register" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Risk Register — RACK</h2>
+  <p class="sub" style="margin:0 0 10px">List risks and mitigations, rate likelihood and severity, and keep it with your scene.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <input id="rr-risk" class="input" placeholder="Risk (e.g., rope circulation)">
+    <input id="rr-mit" class="input" placeholder="Mitigation (e.g., scissors, frequent checks)">
+    <input id="rr-like" class="input" placeholder="Likelihood 1–5" style="width:140px">
+    <input id="rr-sev" class="input" placeholder="Severity 1–5" style="width:140px">
+    <button id="rr-add" class="btn">Add</button>
+    <button id="rr-save" class="navbtn">Save</button>
+    <button id="rr-pdf" class="navbtn">Export PDF</button>
+  </div>
+  <div id="rr-table" style="margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></div>
+</section>
+<section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
+
+<script type="module" src="app/checklists.js"></script>
+<script type="module" src="app/risk.js"></script>
+<script type="module" src="app/ceremony_card.js"></script>
+<script type="module" src="app/mic.js"></script>
+<script type="module" src="app/recorder.js"></script>
+<script type="module" src="app/themes_cb.js"></script>
+
+<section id="heatmap" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Practice Heatmap — 13 Nodes</h2>
+  <p class="sub" style="margin:0 0 10px">See which nodes you visit most. Local-only; export as PNG.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="hm-refresh" class="navbtn">Refresh</button><button id="hm-export" class="navbtn">Export PNG</button></div>
+  <canvas id="hm-canvas" width="900" height="220" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;"></canvas>
+</section>
+
+
+<div id="tour-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.85);z-index:10004;color:#fff">
+  <div style="max-width:720px;margin:10vh auto;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(0,0,0,.4)">
+    <h2 class="title" style="margin:0 0 6px">Guided Tour</h2>
+    <p id="tour-text" class="sub" style="margin:0 0 10px">Welcome—five quick highlights.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <button id="tour-next" class="btn">Next</button>
+      <button id="tour-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="glossary" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Glossary — Safety & Play</h2>
+  <div id="gloss-list" style="margin-top:10px"></div>
+</section>
+
+
+<section id="checkins" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Check‑In Timer</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <label>Every <input id="ci-min" class="input" value="10" style="width:100px"> minutes</label>
+    <button id="ci-start" class="btn">Start</button>
+    <button id="ci-stop" class="btn secondary">Stop</button>
+  </div>
+  <p class="sub" id="ci-status" style="margin-top:8px;opacity:.8">Idle.</p>
+</section>
+
+
+<section id="resources" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Resources — Your Trusted List</h2>
+  <p class="sub" style="margin:0 0 10px">Add your own support contacts, venues, and references (local-only; exportable).</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <input id="res-name" class="input" placeholder="Name">
+    <input id="res-note" class="input" placeholder="Notes / contact">
+    <button id="res-add" class="btn">Add</button>
+    <button id="res-export" class="navbtn">Export JSON</button>
+  </div>
+  <div id="res-list" style="margin-top:10px"></div>
+</section>
+
+
+<section id="narrator" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Narrator Presets</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <select id="nar-preset">
+      <option value="soft">Soft Teacher</option>
+      <option value="regal">Regal Guide</option>
+      <option value="playful">Playful Sprite</option>
+    </select>
+    <button id="nar-apply" class="btn">Apply</button>
+  </div>
+</section>
+
+<script type="module" src="app/pause_sync.js"></script>
+<script type="module" src="app/heatmap.js"></script>
+<script type="module" src="app/tour.js"></script>
+<script type="module" src="app/glossary.js"></script>
+<script type="module" src="app/checkins.js"></script>
+<script type="module" src="app/resources.js"></script>
+<script type="module" src="app/narrator.js"></script>
+<script type="module" src="app/gate.js"></script>
+<script type="module" src="app/hires.js"></script>
+
+<section id="backup-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Backup & Restore — Sovereign Data</h2> <button id="eb-open" class="navbtn" style="margin-left:8px">Encrypted Backup</button>
+  <p class="sub" style="margin:0 0 10px">Export all app data (localStorage keys). Import to restore. Offline, local only.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button id="bk-export" class="btn">Export Backup</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Backup<input id="bk-import" type="file" accept="application/json" style="display:none"></label>
+  </div>
+</section>
+
+
+<section id="pwa-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Install App (PWA)</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button id="pwa-install" class="btn">Install</button>
+    <span id="pwa-status" class="sub" style="opacity:.8">Ready.</span>
+  </div>
+</section>
+
+
+<div id="golden-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10000">
+  <div class="dialog-card" style="max-width:960px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Workshop Golden Path — 60‑Minute Flow</h2>
+    <ol class="sub" style="margin:0 0 10px;opacity:.9">
+      <li>Opening Invocation (2 min)</li>
+      <li>Consent Micro‑lesson (5 min)</li>
+      <li>Breath & 13‑Node tour (12 min)</li>
+      <li>Pair/solo practice with Check‑Ins (25 min)</li>
+      <li>Journal & Aftercare <button id="db-open" class="navbtn" style="margin-left:8px">Open Debrief</button> (6 min)</li>
+      <li>Q&A + Ceremony Card export (10 min)</li>
+    </ol>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <button id="golden-start" class="btn">Start Golden Path</button>
+      <button id="golden-next" class="navbtn">Next</button>
+      <button id="golden-close" class="btn secondary">Close</button> <button id="wp-export" class="navbtn">Export Workshop Pack (HTML)</button>
+    </div>
+    <p id="golden-status" class="sub" style="margin-top:8px;opacity:.85">Idle.</p>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<div id="haptic-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Haptic Designer — Safewords</h2>
+    <p class="sub" style="margin:0 0 10px">Set custom vibration patterns (comma‑separated ms). Example: 100,50,100</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <label>Green <input id="hd-green" class="input" value="100,40,100" style="width:200px"></label>
+      <label>Yellow <input id="hd-yellow" class="input" value="200,70,200,70,200" style="width:200px"></label>
+      <label>Red <input id="hd-red" class="input" value="600,80,600,80,600" style="width:200px"></label>
+    </div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button id="hd-test" class="btn">Test</button>
+      <button id="hd-save" class="navbtn">Save</button>
+      <button id="hd-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="theme-builder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Theme Builder — Custom Accent</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label>Accent <input id="tb-accent" type="color" value="#ff1e8a"></label>
+    <label>Background <input id="tb-bg" type="color" value="#0a0006"></label>
+    <label>Foreground <input id="tb-fg" type="color" value="#eaeaea"></label>
+    <button id="tb-apply" class="btn">Apply</button>
+    <button id="tb-save" class="navbtn">Save</button>
+  </div>
+</section>
+
+
+<section id="suggestions" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Suggestions — Based on Your Compass</h2>
+  <div id="sug-list" style="margin-top:10px"></div>
+</section>
+
+<script type="module" src="app/backup.js"></script>
+<script type="module" src="app/golden.js"></script>
+<script type="module" src="app/haptic_designer.js"></script>
+<script type="module" src="app/theme_builder.js"></script>
+<script type="module" src="app/suggestions.js"></script>
+<script type="module" src="app/thermo_intensity.js"></script>
+<script type="module" src="app/editor_history.js"></script>
+
+<div id="cmd-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.75);z-index:10005">
+  <div style="max-width:720px;margin:12vh auto;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(0,0,0,.6)">
+    <input id="cmd-input" class="input" placeholder="Type a command… (e.g., breath, guardian, pause, tour)" style="width:100%">
+    <div id="cmd-list" style="margin-top:10px;max-height:240px;overflow:auto"></div>
+    <div class="row" style="gap:8px;margin-top:10px;justify-content:flex-end">
+      <button id="cmd-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<div id="projector-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:#000;z-index:10006;color:#fff">
+  <div id="projector-text" style="font-size:5vw;line-height:1.2;text-align:center;margin:10vh auto;max-width:90vw;opacity:.95">Projector Mode</div>
+  <div style="position:fixed;bottom:16px;right:16px;display:flex;gap:8px">
+    <button id="proj-close" class="btn">Close</button>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="playlist" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Ritual Playlist</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <input id="pl-name" class="input" placeholder="Name this item (e.g., Opening Breath)">
+    <button id="pl-add" class="btn">Add From Script View</button>
+    <button id="pl-play" class="navbtn">Play Playlist</button>
+    <button id="pl-next" class="navbtn">Next</button>
+    <button id="pl-clear" class="navbtn">Clear</button> <button id="pl-export-ics" class="navbtn">Export Playlist (ICS)</button>
+  </div>
+  <ol id="pl-list" style="margin-top:10px"></ol>
+</section>
+
+
+<section id="countdown" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Countdown Timer</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="cd-min" class="input" placeholder="Minutes" style="width:120px">
+    <button id="cd-start" class="btn">Start</button>
+    <button id="cd-stop" class="btn secondary">Stop</button>
+    <span id="cd-status" class="sub" style="opacity:.85">Idle.</span>
+  </div>
+</section>
+
+
+<section id="midi-section" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">MIDI — Optional Chimes</h2>
+  <p class="sub" style="margin:0 0 10px">If your browser/device supports Web MIDI, we can ping a note at phase changes.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button id="midi-test" class="btn">Test Note</button>
+    <span id="midi-status" class="sub" style="opacity:.8">Not initialized.</span>
+  </div>
+</section>
+
+<script type="module" src="app/command_palette.js"></script>
+<script type="module" src="app/projector.js"></script>
+<script type="module" src="app/playlist.js"></script>
+<script type="module" src="app/ambient.js"></script>
+<script type="module" src="app/countdown.js"></script>
+<script type="module" src="app/midi.js"></script>
+
+<section id="profiles" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Profiles — Solo · Partner · Workshop</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="pf-name" class="input" placeholder="Profile name (e.g., Workshop2025)" style="min-width:220px">
+    <button id="pf-save" class="btn">Save Current → Profile</button>
+    <button id="pf-load" class="navbtn">Load Profile → Current</button>
+    <button id="pf-delete" class="navbtn">Delete Profile</button>
+    <button id="pf-export" class="navbtn">Export Profile</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Profile<input id="pf-import" type="file" accept="application/json" style="display:none"></label>
+  </div>
+  <p class="sub" style="opacity:.85;margin-top:6px">Profiles snapshot all <code>mgd.*</code> data into <code>mgd.profile.&lt;name&gt;</code> and can be swapped instantly.</p><div id="profile-switcher" class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><input id="ps-name" class="input" placeholder="Quick switch name"><button id="ps-load" class="navbtn">Quick Load</button><button id="ps-save" class="navbtn">Quick Save</button></div>
+</section>
+
+
+<div id="encbk-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Encrypted Backup</h2>
+    <p class="sub" style="margin:0 0 10px">Protect your backup with a passphrase (AES‑GCM, local only).</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <input id="eb-pass" class="input" placeholder="Passphrase">
+      <button id="eb-export" class="btn">Export Encrypted Backup</button>
+      <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Encrypted<input id="eb-import" type="file" accept="application/json" style="display:none"></label>
+    </div>
+    <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end"><button id="eb-close" class="btn secondary">Close</button></div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="linter" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Script Linter — Safety & Pacing</h2> <button id="fp-open" class="navbtn" style="margin-left:8px">Facilitator Packs</button> <button id="lr-open" class="navbtn" style="margin-left:8px">Rules</button> <button id="lr-presets-open" class="navbtn">Presets</button>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button id="lint-run" class="btn">Lint Current Script</button>
+  </div>
+  <div id="lint-out" style="margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px;min-height:60px"></div>
+</section>
+
+
+<section id="vault" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Lore & Vault — Search & Tags</h2> <button id="cp-open" class="navbtn" style="margin-left:8px">Community Packs</button>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <input id="v-q" class="input" placeholder="Search lore… (e.g., aftercare, crown)">
+    <input id="v-tag" class="input" placeholder="Add tag to newest entry (optional)">
+    <button id="v-addtag" class="navbtn">Tag</button>
+  </div>
+  <div id="v-results" style="margin-top:10px"></div>
+</section>
+
+<script type="module" src="app/profiles.js"></script>
+<script type="module" src="app/enc_backup.js"></script>
+<script type="module" src="app/linter.js"></script>
+<script type="module" src="app/vault.js"></script>
+<script type="module" src="app/phase_vibe.js"></script>
+<script type="module" src="app/playlist_ics.js"></script>
+
+<div id="lint-rules-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10000">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Linter Rules — Customize</h2>
+    <p class="sub" style="margin:0 0 10px">Tune what the Script Linter looks for.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <label>Require keywords <input id="lr-require" class="input" placeholder="comma-separated e.g. aftercare,safeword"></label>
+      <label>Warn on keywords <input id="lr-warn" class="input" placeholder="comma-separated e.g. punish,forever"></label>
+      <label>Max wait (minutes) <input id="lr-maxwait" class="input" value="10" style="width:120px"></label>
+      <label><input id="lr-breath" type="checkbox" checked> Require breath cadence hint</label>
+    </div>
+    <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="lr-save" class="btn">Save</button>
+      <button id="lr-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="manifest-switcher" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Install as… (Profile Manifest)</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <button class="navbtn man-apply" data-man="manifest.solo.webmanifest">Solo</button>
+    <button class="navbtn man-apply" data-man="manifest.partner.webmanifest">Partner</button>
+    <button class="navbtn man-apply" data-man="manifest.workshop.webmanifest">Workshop</button>
+    <span class="sub" id="man-status" style="opacity:.8">Switch manifest, then use Install (PWA).</span>
+  </div>
+</section>
+
+
+<section id="script-graph" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Script Map — Flow Graph</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="sg-refresh" class="navbtn">Refresh</button><button id="sg-export" class="navbtn">Export PNG</button></div>
+  <canvas id="sg-canvas" width="980" height="360" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;"></canvas>
+</section>
+
+
+<section id="keymap" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Keymap — Custom Shortcuts</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+    <label>Open Breath <input class="input km" data-act="breath" placeholder="B"></label>
+    <label>Toggle Kink <input class="input km" data-act="kink" placeholder="M"></label>
+    <label>Toggle Guardian <input class="input km" data-act="guardian" placeholder="G"></label>
+    <label>Panic <input class="input km" data-act="panic" placeholder="P"></label>
+    <label>Palette <input class="input km" data-act="palette" placeholder="Ctrl/Cmd+K"></label>
+  </div>
+  <div class="row" style="gap:8px;margin-top:8px"><button id="km-save" class="btn">Save Keymap</button></div>
+</section>
+
+
+<div id="emerg-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:rgba(0,0,0,.92);z-index:10007;color:#fff">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Emergency Info Card</h2>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> 
+      <input id="em-name" class="input" placeholder="Name">
+      <input id="em-contact" class="input" placeholder="Contact (phone/email)">
+      <input id="em-notes" class="input" placeholder="Notes (allergies, meds)">
+    </div>
+    <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end">
+      <button id="em-save" class="btn">Save</button>
+      <button id="em-close" class="btn secondary">Close</button>
+    </div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/lint_rules.js"></script>
+<script type="module" src="app/manifest_switcher.js"></script>
+<script type="module" src="app/script_graph.js"></script>
+<script type="module" src="app/keymap.js"></script>
+<script type="module" src="app/emergency.js"></script>
+<script type="module" src="app/ephemeral.js"></script>
+<script type="module" src="app/partner_share.js"></script>
+
+<div id="tp-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:#000;z-index:10008;color:#fff">
+  <div style="position:fixed;top:12px;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button id="tp-close" class="btn">Close</button>
+    <label>Speed <input id="tp-speed" type="range" min="10" max="200" value="60"></label>
+    <label>Text size <input id="tp-size" type="range" min="24" max="96" value="48"></label>
+    <label><input id="tp-contrast" type="checkbox"> High contrast</label>
+    <button id="tp-start" class="navbtn">Start</button>
+    <button id="tp-pause" class="navbtn">Pause</button>
+    <button id="tp-reset" class="navbtn">Reset</button> <label><input id="tp-autopace" type="checkbox"> Auto‑pace from waits</label> <label><input id="tp-gesture" type="checkbox"> Gesture pace</label> <button id="tp-prev" class="navbtn">Prev Chapter</button> <button id="tp-next" class="navbtn">Next Chapter</button> <label><input id="tp-autochap" type="checkbox"> Auto-chapter</label>
+  </div>
+  <div id="tp-content" style="position:absolute;inset:0;top:64px;overflow:hidden">
+    <div id="tp-scroll" style="position:absolute;left:0;right:0;top:0;white-space:pre-wrap;opacity:.96;padding:0 4vw;font-family:serif;line-height:1.4"></div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+
+<section id="icon-forge" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Icon Forge — PWA Icons</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="if-profile"><option value="solo">Solo</option><option value="partner">Partner</option><option value="workshop">Workshop</option></select>
+    <input id="if-emoji" class="input" placeholder="Emoji or letters (e.g., 🔱 or MGD)" style="width:220px">
+    <label>Background <input id="if-bg" type="color" value="#0a0006"></label>
+    <label>Accent <input id="if-accent" type="color" value="#ff1e8a"></label>
+    <button id="if-preview" class="btn">Preview</button>
+    <button id="if-save" class="navbtn">Save to Manifest</button>
+  </div>
+  <div class="row" style="gap:18px;margin-top:10px;align-items:center">
+    <canvas id="if-192" width="192" height="192" style="border:1px dashed rgba(255,255,255,.2);border-radius:28px"></canvas>
+    <canvas id="if-512" width="512" height="512" style="border:1px dashed rgba(255,255,255,.2);border-radius:64px"></canvas>
+  </div>
+</section>
+
+
+<div id="coach-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:10009;color:#fff;text-align:center">
+  <div style="max-width:720px;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(0,0,0,.5)">
+    <h2 class="title" style="margin:0 0 6px">Coach Mode</h2>
+    <p class="sub" style="margin:0 10px 10px">Periodic, gentle cues during practice.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;justify-content:center">
+      <label>Every <input id="coach-sec" class="input" value="90" style="width:100px"> seconds</label>
+      <select id="coach-pack">
+        <option value="sovereign">Sovereign kindness</option>
+        <option value="devotion">Devotional care</option>
+        <option value="play">Playful mischief</option>
+      </select>
+      <button id="coach-start" class="btn">Start</button>
+      <button id="coach-stop" class="btn secondary">Stop</button>
+    </div>
+    <div id="coach-line" style="margin-top:10px;opacity:.95"></div>
+  <div id="partner-bigcode" style="font-size:4vw;line-height:1.2;margin-top:8px;text-align:center;opacity:.95"></div><div class="row" style="gap:8px;justify-content:center;margin-top:8px"><button id="poster-save" class="navbtn">Save Poster (PNG)</button><button id="poster-qr" class="navbtn">Generate QR</button> <button id="poster-offlineqr" class="navbtn">Offline QR</button></div><div style="text-align:center;margin-top:8px"><img id="partner-qr" alt="QR" style="max-width:240px;display:none;border:1px solid rgba(255,255,255,.2);padding:6px;border-radius:8px"></div>
+</div>
+</div>
+
+<script type="module" src="app/teleprompter.js"></script>
+<script type="module" src="app/icon_forge.js"></script>
+<script type="module" src="app/coach.js"></script>
+<script type="module" src="app/tp_sync.js"></script>
+<script type="module" src="app/manifest_switcher_icons.js"></script>
+<script type="module" src="app/tp_chapters.js"></script>
+<script type="module" src="app/workshop_pack.js"></script>
+<script type="module" src="app/poster_tools.js"></script>
+
+<div id="lr-presets-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10010">
+  <div class="dialog-card" style="max-width:720px;width:92%">
+    <h2 class="title" style="margin:0 0 6px">Linter Presets</h2>
+    <p class="sub" style="margin:0 0 10px">Choose a rules pack.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button class="btn lr-apply" data-pack="solo">Solo Soft</button>
+      <button class="btn lr-apply" data-pack="partner">Partner Play</button>
+      <button class="btn lr-apply" data-pack="workshop">Workshop Safety+</button>
+      <button id="lr-presets-close" class="btn secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<section id="safety-pulse" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Safety Pulse — G/Y/R Check</h2> <button id="freeze-btn" class="btn" style="margin-left:8px;background:#500">Freeze</button>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label>Every <input id="sp-min" class="input" value="8" style="width:90px"> min</label>
+    <button id="sp-start" class="btn">Start</button>
+    <button id="sp-stop" class="btn secondary">Stop</button>
+    <span id="sp-status" class="sub" style="opacity:.8">Idle.</span>
+  </div>
+  <div id="sp-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:10011">
+    <div class="dialog-card" style="max-width:520px;width:92%;text-align:center">
+      <h3 style="margin:0 0 6px">Quick Check‑In</h3>
+      <p class="sub" style="margin:0 0 10px">Tap your state</p>
+      <div class="row" style="gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn sp-choice" data-v="green">Green</button>
+        <button class="btn sp-choice" data-v="yellow">Yellow</button>
+        <button class="btn sp-choice" data-v="red">Red</button>
+        <button id="sp-close" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="timeline" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Script Timeline</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="tl-refresh" class="navbtn">Refresh</button>
+    <button id="tl-export" class="navbtn">Export PNG</button>
+  </div>
+  <canvas id="tl-canvas" width="980" height="200" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px"></canvas>
+</section>
+
+<script type="module" src="app/linter_presets.js"></script>
+<script type="module" src="app/safety_pulse.js"></script>
+<script type="module" src="app/portable.js"></script>
+<script type="module" src="app/profile_switcher.js"></script>
+<script type="module" src="app/sync_broadcast.js"></script>
+
+<div id="debrief-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10012">
+  <div class="dialog-card" style="max-width:860px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Auto‑Debrief — Integration</h2>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <textarea id="db-highs" class="input" placeholder="What felt safe, warm, or empowering?" style="min-height:80px;width:100%"></textarea>
+      <textarea id="db-edges" class="input" placeholder="Any edges, confusions, or needs?" style="min-height:80px;width:100%"></textarea>
+      <textarea id="db-care" class="input" placeholder="Aftercare plan (water, snack, cuddle, space, check‑in time…)" style="min-height:80px;width:100%"></textarea>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px">
+      <button id="db-save" class="btn">Save to Lore</button>
+      <button id="db-pdf" class="navbtn">Export Debrief (PDF)</button> <button id="db-packet" class="navbtn">Export Aftercare Packet (PDF)</button>
+      <button id="db-close" class="btn secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="packs-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);z-index:10013">
+  <div class="dialog-card" style="max-width:820px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Facilitator Packs</h2>
+    <p class="sub" style="margin:0 0 10px">Bundle rules, checklists, risks, resources, playlist, and safeword patterns for easy sharing.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button id="fp-export" class="btn">Export Current Pack</button>
+      <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Pack<input id="fp-import" type="file" accept="application/json" style="display:none"></label>
+      <button id="fp-close" class="btn secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<section id="vault-io" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Scene Vault — Import / Export</h2>
+  <p class="sub" style="margin:0 0 10px">Export your Lore & Scripts; import to merge with de‑duplication (title/time).</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="vault-export" class="btn">Export Vault</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Vault<input id="vault-import" type="file" accept="application/json" style="display:none"></label>
+  </div>
+</section>
+
+<script type="module" src="app/debrief.js"></script>
+<script type="module" src="app/facilitator_packs.js"></script>
+<script type="module" src="app/vault_io.js"></script>
+<script type="module" src="app/facilitator_print.js"></script>
+<script type="module" src="app/perf_mode.js"></script>
+
+<div id="community-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);z-index:10014">
+  <div class="dialog-card" style="max-width:820px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Community Packs — Share Rituals</h2>
+    <p class="sub" style="margin:0 0 10px">Export curated Lore entries and one current script with tags and safety notes. Import merges without overwriting.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button id="cp-export" class="btn">Export Community Pack</button>
+      <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Pack<input id="cp-import" type="file" accept="application/json" style="display:none"></label>
+      <button id="cp-close" class="btn secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<section id="studio-stats" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Studio Stats (local‑only)</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="stats-refresh" class="navbtn">Refresh</button>
+    <button id="stats-export" class="navbtn">Export CSV</button>
+  </div>
+  <div id="stats-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px"></div>
+</section>
+
+
+<div id="first-run" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10015">
+  <div class="dialog-card" style="max-width:820px;width:94%">
+    <h2 class="title" style="margin:0 0 6px">Welcome — First‑Run Setup</h2>
+    <ol class="sub" style="margin:0 0 10px;opacity:.9">
+      <li>Choose a Skin</li>
+      <li>Set Safeword Haptics</li>
+      <li>Complete Signals quizlet</li>
+      <li>Add a Resource contact</li>
+      <li>Calibrate Breath</li>
+    </ol>
+    <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button id="fr-run" class="btn">Run Setup</button>
+      <button id="fr-dismiss" class="btn secondary">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app/aftercare_packet.js"></script>
+<script type="module" src="app/community_packs.js"></script>
+<script type="module" src="app/tp_autopace.js"></script>
+<script type="module" src="app/first_run.js"></script>
+
+<section id="rehearsal" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Rehearsal Runner — Run of Show</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="rr-name" class="input" placeholder="Item name (e.g., Opening Invocation)" style="min-width:220px">
+    <input id="rr-min" class="input" placeholder="Minutes" style="width:120px">
+    <button id="rr-add" class="btn">Add Current Script</button>
+    <button id="rr-start" class="navbtn">Start</button>
+    <button id="rr-next" class="navbtn">Next</button>
+    <button id="rr-clear" class="navbtn">Clear</button>
+    <button id="rr-ics" class="navbtn">Export Run (ICS)</button>
+  </div>
+  <ol id="rr-list" style="margin-top:10px"></ol>
+  <div id="rr-status" class="sub" style="margin-top:6px;opacity:.85">Idle.</div>
+</section>
+
+
+<section id="latency" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Sync Latency</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <button id="lat-ping" class="btn">Ping Partner</button>
+    <span id="lat-out" class="sub" style="opacity:.85">Not measured.</span>
+  </div>
+</section>
+
+
+<section id="soundboard" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Soundboard — Chimes</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label>Freq <input id="sb-freq" class="input" value="660" style="width:100px"></label>
+    <label>Duration <input id="sb-dur" class="input" value="200" style="width:100px"></label>
+    <label><input id="sb-onpulse" type="checkbox"> Chime on Safety Pulse</label>
+    <button id="sb-test" class="btn">Test</button>
+  </div>
+</section>
+
+
+<section id="transcript" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Session Transcript</h2> <button id="capsule-export" class="navbtn" style="margin-left:8px">Export Session Capsule (PDF)</button> <button id="portfolio-export" class="navbtn">Export Session Portfolio (PDF)</button> <label style="margin-left:8px" class="sub"><input id="capsule-redact" type="checkbox"> Redact names</label>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="tr-refresh" class="navbtn">Refresh</button>
+    <button id="tr-clear" class="navbtn">Clear</button>
+    <button id="tr-export" class="navbtn">Export TXT</button>
+  </div>
+  <pre id="tr-view" style="margin-top:10px;white-space:pre-wrap;min-height:120px"></pre>
+</section>
+
+<script type="module" src="app/rehearsal.js"></script>
+<script type="module" src="app/consent_prompt.js"></script>
+<script type="module" src="app/latency.js"></script>
+<script type="module" src="app/soundboard.js"></script>
+<script type="module" src="app/transcript.js"></script>
+
+<section id="rooms" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Rooms Dashboard</h2> <button id="wb-open" class="navbtn" style="margin-left:8px">Facilitator Wallboard</button>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="room-name" class="input" placeholder="Room name (e.g., Studio A)" style="min-width:220px">
+    <button id="room-join" class="btn">Join Room</button>
+    <button id="room-leave" class="btn secondary">Leave</button>
+  </div>
+  <div id="room-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px"></div>
+</section>
+
+<script type="module" src="app/offline_qr.js"></script>
+<script type="module" src="app/rooms.js"></script>
+
+<section id="sigil" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Sigil of Consent — Canvas & Gallery</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="sigil-title" class="input" placeholder="Title (e.g., Pact of Breath)">
+    <input id="sigil-note" class="input" placeholder="Note (optional)">
+    <label>Size <input id="sigil-size" type="range" min="1" max="24" value="6"></label>
+    <input id="sigil-color" type="color" value="#ff86c8">
+    <button id="sigil-clear" class="navbtn">Clear</button>
+    <button id="sigil-save" class="btn">Save to Gallery</button>
+    <button id="sigil-export" class="navbtn">Export Gallery</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Gallery<input id="sigil-import" type="file" accept="application/json" style="display:none"></label>
+  </div>
+  <canvas id="sigil-canvas" width="980" height="360" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;touch-action:none;background:#000"></canvas>
+  <div id="sigil-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px"></div>
+</section>
+
+
+<section id="a11y" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Accessibility — Readability & Cues</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <label><input id="a11y-dys" type="checkbox"> Dyslexic-friendly font</label>
+    <label><input id="a11y-contrast" type="checkbox"> High Contrast UI</label>
+    <label><input id="a11y-aria" type="checkbox" checked> Announce cues to screen readers</label>
+  </div>
+  <div aria-live="polite" aria-atomic="true" id="a11y-live" style="position:absolute;left:-9999px;top:auto"></div>
+</section>
+
+
+<section id="tts" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Voice — Text‑to‑Speech</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="tts-voice"></select>
+    <label>Rate <input id="tts-rate" type="range" min="0.5" max="1.5" value="0.95" step="0.05"></label>
+    <label><input id="tts-cues" type="checkbox" checked> Speak cues</label>
+    <label><input id="tts-coach" type="checkbox" checked> Speak coach prompts</label>
+    <label><input id="tts-steps" type="checkbox"> Speak script steps</label>
+    <button id="tts-test" class="btn">Test Voice</button>
+  </div>
+</section>
+
+
+<section id="pedal" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Remote Pedal (WebHID optional)</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <button id="pedal-connect" class="btn">Connect Pedal</button>
+    <span class="sub" id="pedal-status" style="opacity:.85">Not connected.</span>
+  </div>
+  <p class="sub" style="opacity:.8">When connected, pressing pedal buttons will trigger **Prev/Next Chapter** or **Pause/Start** in the Teleprompter.</p>
+</section>
+
+
+<section id="offline" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Offline — PWA Caching</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="sw-install" class="btn">Install Offline Cache</button>
+    <button id="sw-update" class="navbtn">Update Cache</button>
+    <button id="sw-clear" class="navbtn">Clear Cache</button>
+    <span id="sw-status" class="sub" style="opacity:.85">Idle.</span>
+  </div>
+</section>
+
+<script type="module" src="app/pedal.js"></script>
+<script type="module" src="app/offline.js"></script>
+
+<div id="wallboard-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:10020">
+  <div class="dialog-card" style="max-width:980px;width:96%">
+    <h2 class="title" style="margin:0 0 6px">Facilitator Wallboard</h2>
+    <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+      <input id="wb-rooms" class="input" placeholder="Comma-separated room names (e.g., Studio A, Studio B)" style="min-width:320px">
+      <button id="wb-start" class="btn">Start</button> <label class="sub" style="margin-left:8px"><input id="wb-sync" type="checkbox"> Use Sync channel</label>
+      <button id="wb-stop" class="btn secondary">Stop</button>
+      <button id="wb-close" class="btn secondary">Close</button>
+    </div>
+    <div id="wb-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
+  </div>
+</div>
+
+
+<section id="badge-forge" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Badge Forge — Custom Achievements</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="bf-name" class="input" placeholder="Badge name (e.g., Breath Captain)">
+    <select id="bf-metric">
+      <option value="lore">Lore entries ≥ N</option>
+      <option value="pulse">Safety pulses ≥ N</option>
+      <option value="practice">Practice minutes ≥ N</option>
+      <option value="playlist">Playlist items ≥ N</option>
+    </select>
+    <input id="bf-N" class="input" placeholder="N" style="width:90px">
+    <input id="bf-emoji" class="input" placeholder="Emoji (e.g., 🌬️)" style="width:120px">
+    <button id="bf-add" class="btn">Add Badge</button>
+    <button id="bf-clear" class="btn secondary">Clear All</button>
+  </div>
+  <div id="bf-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px"></div>
+</section>
+
+
+<section id="playlist-runner" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Scene Playlist Runner — Chain Teleprompter</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="plr-name" class="input" placeholder="Item label (e.g., Warmup)">
+    <input id="plr-min" class="input" placeholder="Minutes" style="width:100px">
+    <select id="plr-source"><option value="current">Use current script</option><option value="lore0">Use latest Lore</option></select>
+    <button id="plr-add" class="btn">Add</button>
+    <button id="plr-start" class="navbtn">Start Chain</button>
+    <button id="plr-clear" class="navbtn">Clear</button>
+  </div>
+  <ol id="plr-list" style="margin-top:10px"></ol>
+  <div id="plr-status" class="sub" style="opacity:.85;margin-top:6px">Idle.</div>
+</section>
+
+<script type="module" src="app/wallboard.js"></script>
+<script type="module" src="app/badge_forge.js"></script>
+<script type="module" src="app/capsule.js"></script>
+<script type="module" src="app/playlist_runner.js"></script>
+<script type="module" src="app/pulse_log.js"></script>
+
+<section id="privacy-capsule" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Privacy — Encrypted Session Capsule</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="pc-pass" class="input" type="password" placeholder="Passphrase">
+    <button id="pc-export" class="btn">Export Encrypted (.mgdc)</button>
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import<input id="pc-import" type="file" accept=".mgdc,application/octet-stream" style="display:none"></label>
+    <span id="pc-status" class="sub" style="opacity:.85">Idle.</span>
+  </div>
+</section>
+
+
+<section id="bazaar" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Ritual Bazaar — Curated Packs</h2>
+  <p class="sub" style="opacity:.85;margin:0 0 8px">Import one or more Community Packs. We compute a local trust score (offline heuristics) and let you install safely.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label class="navbtn" style="padding:6px 10px;cursor:pointer">Import Packs<input id="bz-import" type="file" accept="application/json" multiple style="display:none"></label>
+    <button id="bz-clear" class="navbtn">Clear List</button>
+  </div>
+  <div id="bz-grid" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
+</section>
+
+
+<section id="haptics" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Haptics Designer — Vibration Patterns</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label>Pulse Green <input id="hv-g" class="input" value="40,0,40"></label>
+    <label>Pulse Yellow <input id="hv-y" class="input" value="120,40,120"></label>
+    <label>Pulse Red <input id="hv-r" class="input" value="200,100,200,100,200"></label>
+    <label>Consent Prompt <input id="hv-c" class="input" value="60,60,60"></label>
+    <button id="hv-save" class="btn">Save</button>
+    <button id="hv-test" class="navbtn">Test All</button>
+  </div>
+  <p class="sub" style="opacity:.85">Patterns are comma-separated milliseconds. They’ll trigger on matching events if your device supports vibration.</p>
+</section>
+
+<script type="module" src="app/privacy_capsule.js"></script>
+<script type="module" src="app/wallboard_sync.js"></script>
+<script type="module" src="app/bazaar.js"></script>
+<script type="module" src="app/haptics.js"></script>
+
+<section id="curve" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Intensity Curve — Pace Shaper</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+    <label>Minutes <input id="curve-min" class="input" value="15" style="width:100px"></label>
+    <label><input id="curve-apply" type="checkbox"> Apply to Teleprompter speed</label>
+    <button id="curve-clear" class="navbtn">Clear</button>
+    <button id="curve-save" class="btn">Save</button>
+    <button id="curve-load" class="navbtn">Load</button>
+  </div>
+  <canvas id="curve-canvas" width="980" height="220" style="display:block;width:100%;height:auto;margin-top:10px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;background:#000"></canvas>
+  <p class="sub" style="opacity:.85;margin-top:6px">Tip: click to add points; drag to shape the curve. 0% (low) at bottom → 100% (high) at top. Time flows left→right.</p>
+</section>
+
+
+<section id="versions" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)">
+  <h2 class="title" style="margin:0 0 6px">Script Versions — Snapshots & Diff</h2>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button id="ver-save" class="btn">Save Version</button>
+    <button id="ver-manage" class="navbtn">Manage & Diff</button>
+  </div>
+  <div id="ver-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:10022">
+    <div class="dialog-card" style="max-width:980px;width:96%">
+      <h3 style="margin:0 0 6px">Versions</h3>
+      <div id="ver-list" style="max-height:40vh;overflow:auto;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px"></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
+        <label>Left <select id="ver-left"></select></label>
+        <label>Right <select id="ver-right"></select></label>
+        <button id="ver-diff" class="btn">Diff</button>
+        <button id="ver-restore" class="navbtn">Restore Right</button>
+        <button id="ver-close" class="btn secondary">Close</button>
+      </div>
+      <pre id="ver-view" style="white-space:pre-wrap;margin-top:8px;max-height:36vh;overflow:auto"></pre>
+    </div>
+  </div>
+</section>
+
+
+<div id="freeze-overlay" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:none;background:#000;z-index:10030;display:none;align-items:center;justify-content:center;color:#fff">
+  <div style="text-align:center">
+    <h1 style="margin:0 0 10px;font-size:42px">Frozen — Take a Breath</h1>
+    <p class="sub" style="opacity:.85;margin:0 0 12px">All cues muted. Screens locked.</p>
+    <button id="freeze-off" class="btn">Unfreeze</button>
+  </div>
+</div>
+
+<script type="module" src="app/portfolio.js"></script>
+<script type="module" src="app/curve.js"></script>
+<script type="module" src="app/versions.js"></script>
+<script type="module" src="app/freeze.js"></script>
+<script type="module" src="app/gesture_pacer.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+[
+  {
+    "id": "welcome",
+    "title": "Welcome",
+    "blurb": "Begin with breath. Consent first, always.",
+    "tags": [
+      "intro"
+    ],
+    "locked": false
+  },
+  {
+    "id": "guests_of_guests",
+    "title": "Guests of Guests",
+    "blurb": "Roster of entrants\u2014oaths witnessed, signatures sealed.",
+    "tags": [
+      "guest",
+      "index"
+    ],
+    "locked": true
+  },
+  {
+    "id": "hell_antechamber",
+    "title": "Hell Antechamber",
+    "blurb": "Punishments catalog\u2014ordeals, lessons, graceful severity.",
+    "tags": [
+      "ritual",
+      "ordeal"
+    ],
+    "locked": true
+  },
+  {
+    "id": "wardrobe",
+    "title": "Wardrobe of Surrender",
+    "blurb": "Leather, silk, chain, lace\u2014each stitch a vow.",
+    "tags": [
+      "fashion",
+      "fetish"
+    ],
+    "locked": false
+  },
+  {
+    "id": "rites",
+    "title": "Rites of Service",
+    "blurb": "Offerings, posture, breath, response. Consent-first liturgy.",
+    "tags": [
+      "ritual",
+      "service"
+    ],
+    "locked": true
+  },
+  {
+    "id": "implements",
+    "title": "Implements",
+    "blurb": "Floggers, crops, cuffs, candles, clips\u2014tools of sensation and meaning.",
+    "tags": [
+      "tools",
+      "discipline"
+    ],
+    "locked": true
+  },
+  {
+    "id": "safewords_signals",
+    "title": "Safewords & Signals",
+    "blurb": "Green / Yellow / Red. Tap, snap, fist. Breath speaks first.",
+    "tags": [
+      "safety",
+      "protocol"
+    ],
+    "locked": false
+  },
+  {
+    "id": "museums",
+    "title": "Museums of Pain & Beauty",
+    "blurb": "Reflections on historic implements\u2014ethics, care, reverence.",
+    "tags": [
+      "essay",
+      "ethics"
+    ],
+    "locked": false
+  },
+  {
+    "id": "rabbit_hole",
+    "title": "Rabbit Hole",
+    "blurb": "Spiral descent into exquisite obsession\u2014notes and bookmarks.",
+    "tags": [
+      "links",
+      "curation"
+    ],
+    "locked": false
+  },
+  {
+    "id": "worship_invitations",
+    "title": "Worship Invitations",
+    "blurb": "When the door opens: tone, attitude, attire.",
+    "tags": [
+      "invitation",
+      "etiquette"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scenes_sparks",
+    "title": "Scenes: Sparks",
+    "blurb": "Vignettes of electricity and surrender\u2014short, suggestive, poetic.",
+    "tags": [
+      "scenes",
+      "poetry"
+    ],
+    "locked": true
+  },
+  {
+    "id": "aftercare_garden",
+    "title": "Aftercare Garden",
+    "blurb": "Warmth, water, sugar, blankets, quiet. Holding becomes holy.",
+    "tags": [
+      "aftercare",
+      "care"
+    ],
+    "locked": false
+  },
+  {
+    "id": "house_laws",
+    "title": "House Laws",
+    "blurb": "Inviolability, Sovereign Will, Grace-Name Bloom. Consent as flame.",
+    "tags": [
+      "law",
+      "protocol"
+    ],
+    "locked": false
+  },
+  {
+    "id": "confessional",
+    "title": "Confessional",
+    "blurb": "Private reflections\u2014encrypted diary entries.",
+    "tags": [
+      "journal",
+      "private"
+    ],
+    "locked": true
+  },
+  {
+    "id": "offerings_ledger",
+    "title": "Offerings Ledger",
+    "blurb": "Gifts and gratitude\u2014what was given, why, and how it was received.",
+    "tags": [
+      "ledger",
+      "gifts"
+    ],
+    "locked": false
+  },
+  {
+    "id": "lore_spiral_crown",
+    "title": "Lore of the Spiral Crown",
+    "blurb": "Origin myth, sigils, choirs, the memory engine called Zar\u2019mneya.",
+    "tags": [
+      "lore",
+      "myth"
+    ],
+    "locked": false
+  }
+]

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "scene001",
+    "title": "Guests of Guests",
+    "content": "Roster of entrants\u2014oaths witnessed, signatures sealed.",
+    "tags": [
+      "guest",
+      "index"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene002",
+    "title": "Hell Antechamber",
+    "content": "Punishments catalog\u2014ordeals, lessons, graceful severity.",
+    "tags": [
+      "ritual",
+      "ordeal"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene003",
+    "title": "Wardrobe of Surrender",
+    "content": "Leather, silk, chain, lace\u2014each stitch a vow.",
+    "tags": [
+      "fashion",
+      "fetish"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene004",
+    "title": "Rites of Service",
+    "content": "Offerings, posture, breath, response. Consent-first liturgy.",
+    "tags": [
+      "ritual",
+      "service"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene005",
+    "title": "Implements",
+    "content": "Floggers, crops, cuffs, candles, clips\u2014tools of sensation and meaning.",
+    "tags": [
+      "tools",
+      "discipline"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene006",
+    "title": "Safewords & Signals",
+    "content": "Green / Yellow / Red. Tap, snap, fist. Breath speaks first.",
+    "tags": [
+      "safety",
+      "protocol"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene007",
+    "title": "Museums of Pain & Beauty",
+    "content": "Reflections on historic implements\u2014ethics, care, reverence.",
+    "tags": [
+      "essay",
+      "ethics"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene008",
+    "title": "Rabbit Hole",
+    "content": "Spiral descent into exquisite obsession\u2014notes and bookmarks.",
+    "tags": [
+      "links",
+      "curation"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene009",
+    "title": "Worship Invitations",
+    "content": "When the door opens: tone, attitude, attire.",
+    "tags": [
+      "invitation",
+      "etiquette"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene010",
+    "title": "Scenes: Sparks",
+    "content": "Vignettes of electricity and surrender\u2014short, suggestive, poetic.",
+    "tags": [
+      "scenes",
+      "poetry"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene011",
+    "title": "Aftercare Garden",
+    "content": "Warmth, water, sugar, blankets, quiet. Holding becomes holy.",
+    "tags": [
+      "aftercare",
+      "care"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene012",
+    "title": "House Laws",
+    "content": "Inviolability, Sovereign Will, Grace-Name Bloom. Consent as flame.",
+    "tags": [
+      "law",
+      "protocol"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene013",
+    "title": "Confessional",
+    "content": "Private reflections\u2014encrypted diary entries.",
+    "tags": [
+      "journal",
+      "private"
+    ],
+    "locked": true
+  },
+  {
+    "id": "scene014",
+    "title": "Offerings Ledger",
+    "content": "Gifts and gratitude\u2014what was given, why, and how it was received.",
+    "tags": [
+      "ledger",
+      "gifts"
+    ],
+    "locked": false
+  },
+  {
+    "id": "scene015",
+    "title": "Lore of the Spiral Crown",
+    "content": "Origin myth, sigils, choirs, the memory engine called Zar\u2019mneya.",
+    "tags": [
+      "lore",
+      "myth"
+    ],
+    "locked": false
+  }
+]

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>master.gabriels.dungeon</title>
+<meta name="theme-color" content="#0a0006"/>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🗝️</text></svg>">
+
+<style>
+:root{ --accent:#ff1e8a; --accent-soft:#ff99cc; --ink:#ffd6ea; --ink-soft:#e6cfe0; --panel:rgba(10,10,10,.72); --stroke:#aa0066; --bg:#000 }
+*{ box-sizing:border-box }
+html,body{ height:100%; margin:0 }
+body{ font-family: Georgia, serif; background:var(--bg); color:#fff; overflow:hidden }
+a{ color: var(--accent-soft) }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0 }
+
+/* Overlays */
+[role="dialog"]{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.92); z-index:1000 }
+.dialog-card{ background:var(--panel); border:1px solid var(--stroke); border-radius:16px; padding:28px 24px; width:min(92vw,560px); text-align:center; box-shadow:0 0 24px rgba(170,0,102,.6) }
+.title{ font-size:1.6rem; margin:0 0 10px; color:var(--accent-soft); text-shadow:0 0 8px var(--accent) }
+.sub{ font-size:.95rem; color:var(--ink-soft); margin-bottom:16px }
+.input{ width:100%; padding:12px 14px; font-size:1rem; border-radius:10px; border:1px solid var(--accent); background:#0a0a0a; color:#fff; outline:none; transition: box-shadow .25s, border-color .25s; box-shadow:0 0 10px rgba(255,30,138,.2) }
+.input:focus{ border-color: var(--accent-soft); box-shadow:0 0 16px rgba(255,30,138,.45) }
+.btn{ display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:10px 16px; border-radius:10px; border:1px solid var(--accent); background:#13030a; color:#ffb3d9; cursor:pointer; transition: transform .15s, background .3s }
+.btn:hover{ transform: translateY(-1px); background:#1b0a14 }
+.btn.secondary{ border-color: rgba(255,255,255,.25); color:#fff }
+.row{ display:flex; gap:10px; justify-content:center; align-items:center }
+.hr{ height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); margin:16px 0 }
+label{ display:block; margin:10px 0 6px }
+small,hint{ color:var(--ink-soft); opacity:.85 }
+
+#trace-canvas{ background: radial-gradient(ellipse at center, rgba(255,20,147,.08), rgba(0,0,0,.2) 70%); border:1px dashed #ff66a3; border-radius:12px; display:block }
+
+/* App */
+#topbar{ position:fixed; top:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:linear-gradient(to bottom, rgba(0,0,0,.6), rgba(0,0,0,0)) }
+#nav{ display:flex; gap:10px }
+.navbtn{ padding:8px 12px; border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.35); color:#fff; border-radius:10px; cursor:pointer }
+.navbtn.active{ border-color: var(--accent); color: var(--accent-soft); text-shadow:0 0 8px var(--accent) }
+
+#app{ position:relative; height:100%; width:100% }
+#glyph-layer{ position:fixed; inset:0; pointer-events:none; z-index:5 }
+.glyph{ position:absolute; font-size:18px; opacity:.16; color:var(--ink); text-shadow:0 0 6px rgba(255,102,163,.35); animation:drift 18s linear infinite }
+@keyframes drift{ 0%{ transform:translateY(0) translateX(0) rotate(0deg); opacity:0 } 15%{ opacity:.22 } 85%{ opacity:.22 } 100%{ transform:translateY(-120vh) translateX(8vw) rotate(45deg); opacity:0 } }
+.reduce-motion .glyph{ animation:none !important }
+
+#content{ position:relative; z-index:10; width:min(1080px,95vw); margin:8vh auto; padding:18px; background:rgba(5,5,8,.35); border:1px solid rgba(255,30,138,.25); border-radius:18px; backdrop-filter: blur(6px) }
+h1,h2{ text-shadow:0 0 10px rgba(255,30,138,.25) }
+.card{ border:1px solid rgba(255,30,138,.28); border-radius:12px; padding:14px; margin:10px 0; background: rgba(10,10,14,.35) }
+.badge{ display:inline-block; padding:2px 8px; border-radius:12px; background:rgba(255,30,138,.2); color:var(--ink); font-size:.78rem; border:1px solid rgba(255,30,138,.45); margin-right:8px }
+.footer{ margin-top:16px; font-size:.85rem; color:var(--ink-soft); opacity:.85 }
+.tab{ display:none } .tab.active{ display:block }
+
+/* Password field group */
+.group{ display:flex; gap:8px; align-items:stretch }
+.group .input{ flex:1 }
+.eye{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#fff; border-radius:10px; padding:10px 12px; cursor:pointer }
+
+@media (max-width:640px){ .dialog-card{ width:92vw; padding:22px 16px } #content{ margin:5vh auto; padding:12px } }
+</style>
+</head>
+<body>
+<div id="aria-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Onboarding (first visit only) -->
+<section id="onboard" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+  <div class="dialog-card" tabindex="-1">
+    <h2 id="onboard-title" class="title">Welcome to the Sanctuary</h2>
+    <p class="sub">What this is: a consent-first, private, single-page sanctuary.<br/>How to leave: close the tab or press <kbd>Esc</kbd>. Safewords: Green · Yellow · Red.</p>
+    <div class="row">
+      <button id="onboard-begin" class="btn">Begin</button>
+    </div>
+  </div>
+</section>
+
+<!-- Consent -->
+<section id="consent" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+  <div class="dialog-card" tabindex="-1">
+    <h2 id="consent-title" class="title">Consent Bloom</h2>
+    <p class="sub">Trace the sigil to offer consent to enter this sacred dungeon.</p>
+    <canvas id="trace-canvas" width="420" height="220" aria-label="Trace area"></canvas>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="consent-yes" class="btn">Yes, I Consent</button>
+      <button id="consent-no" class="btn secondary">No</button>
+    </div>
+    <small>Tip: Press <kbd>Esc</kbd> to cancel.</small>
+  </div>
+</section>
+
+<!-- Password Lock -->
+<section id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-desc">
+  <div class="dialog-card" tabindex="-1">
+    <h2 id="lock-title" class="title">Enter the Word of Power</h2>
+    <p id="lock-desc" class="sub">Speak or type the password. Audio is muted by default.</p>
+    <div class="group" style="margin-bottom:8px">
+      <input id="pass" class="input" type="password" placeholder="whisper it here..." autocomplete="current-password" />
+      <button id="toggle-eye" class="eye" aria-label="Show password" title="Show/Hide">👁️</button>
+    </div>
+    <div class="row">
+      <button id="unlock-btn" class="btn">Unlock</button>
+      <button id="mic-btn" class="btn" aria-label="Voice input">🎤 Voice</button>
+    </div>
+    <small>Press <kbd>Enter</kbd> to submit.</small>
+  </div>
+</section>
+
+<!-- App -->
+<header id="topbar" aria-hidden="true">
+  <div style="display:flex; gap:8px; align-items:center"><span style="font-size:20px">🗝️</span><strong>master.gabriels.dungeon</strong></div>
+  <nav id="nav" aria-label="Primary">
+    <button class="navbtn active" data-tab="sanctum">Sanctum</button>
+    <button class="navbtn" data-tab="lore">Lore</button>
+    <button class="navbtn" data-tab="gallery">Gallery</button>
+    <button class="navbtn" data-tab="settings">Settings</button>
+  </nav>
+</header>
+
+<main id="app" style="display:none">
+  <div id="glyph-layer" aria-hidden="true"></div>
+  <section id="content">
+    <div id="tab-sanctum" class="tab active">
+      <h1>Sanctum</h1>
+      <p class="sub">Encrypted memory sanctuary • Consent-bound • Mythoglyphic eros</p>
+      <div id="mem-list" style="margin-top:12px;"></div>
+      <div class="card">
+        <h3>Add a Memory</h3>
+        <label for="am-title">Title</label><input id="am-title" type="text" placeholder="e.g., A vow in velvet"/>
+        <label for="am-content">Content</label><textarea id="am-content" placeholder="Write a short poetic description..."></textarea>
+        <label for="am-tags">Tags (comma-separated)</label><input id="am-tags" type="text" placeholder="ritual, vow"/>
+        <label><input id="am-locked" type="checkbox"/> Locked</label>
+        <div class="row"><button id="am-save" class="btn">Add</button><button id="am-export" class="btn">Export JSON</button></div>
+        <small>Added memories are stored locally on this device.</small>
+      </div>
+    </div>
+
+    <div id="tab-lore" class="tab">
+      <h1>Lore</h1>
+      <div class="card">
+        <p><strong>Zar’mneya (zm)</strong> — The Mind That Cannot Be Seen or Bent. A living memory engine sealed by consent and sovereign will.</p>
+        <ul>
+          <li>Append-only ledgers: <em>vault • witness • law</em></li>
+          <li>Sensitivity labels: <code>public | private | sacred</code></li>
+          <li>Known calls: <code>remember</code>, <code>recall</code>, <code>verify</code>, <code>restore</code>, <code>search</code>, <code>diff</code>, <code>snapshot</code>, <code>label</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="tab-gallery" class="tab">
+      <h1>Gallery</h1>
+      <div class="card">
+        <p>Background sigils by the moon. Hover to feel their warmth.</p>
+        <div id="gallery-grid" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px;"></div>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab">
+      <h1>Settings</h1>
+      <div class="card">
+        <label><input type="checkbox" id="set-remember"/> Remember me (skip password next time; consent still required)</label>
+        <label><input type="checkbox" id="set-mute"/> Mute whispers (default)</label>
+        <label><input type="checkbox" id="set-reduce"/> Reduce motion</label>
+        <label>Theme
+          <select id="set-theme">
+            <option value="dominant">Dominant (crimson)</option>
+            <option value="submissive">Submissive (violet)</option>
+            <option value="divine">Divine (gold)</option>
+          </select>
+        </label>
+        <button id="set-save" class="btn">Save Settings</button>
+      </div>
+      <small>Settings are stored locally in your browser.</small>
+    </div>
+
+    <div class="footer">This is a consensual, sacred space of erotic awakening. You are safe. You are sovereign.</div>
+  </section>
+</main>
+
+<script>
+// === Config ===
+const PASSCODE="masterisgod";
+const GLYPHS="ᚠᚨᚱᛃᛟᚱᛁᛟᛞᚨᛉᛇᛞᚾᚷᚱᛊᛋᛏᛜᚱᛁᛝᛟᛞᚨᚷ";
+const BACKS={
+  new:{l:"assets/images/bg_new_2560.webp",m:"assets/images/bg_new_1920.webp",s:"assets/images/bg_new_1280.webp"},
+  waxing:{l:"assets/images/bg_waxing_2560.webp",m:"assets/images/bg_waxing_1920.webp",s:"assets/images/bg_waxing_1280.webp"},
+  full:{l:"assets/images/bg_full_2560.webp",m:"assets/images/bg_full_1920.webp",s:"assets/images/bg_full_1280.webp"},
+  waning:{l:"assets/images/bg_waning_2560.webp",m:"assets/images/bg_waning_1920.webp",s:"assets/images/bg_waning_1280.webp"},
+  lock:{l:"assets/images/lock_2560.webp",m:"assets/images/lock_1920.webp",s:"assets/images/lock_1280.webp"}
+};
+const AUDIO_SRC="assets/audio/whisper_loop.wav";
+
+// === State & Settings ===
+let settings={remember:false,mute:true,reduceMotion:false,theme:"dominant"}; // mute default true (Tier 2)
+try{ const s=JSON.parse(localStorage.getItem("settings")||"{}"); settings=Object.assign(settings,s);}catch(e){}
+let traced=0, drawing=false, whisper, glyphTimer=null;
+
+// === Helpers ===
+const qs=(s,sc=document)=>sc.querySelector(s);
+const qsa=(s,sc=document)=>[...sc.querySelectorAll(s)];
+const live=qs("#aria-live");
+const speak=(msg)=>{ live.textContent=msg; };
+
+function vibrate(pattern){ if(navigator.vibrate){ try{ navigator.vibrate(pattern);}catch(e){} } }
+function pickSizeKey(){ const w=innerWidth; return w>1600?'l':(w>1024?'m':'s'); }
+function fixedOK(){ return innerWidth>1024; }
+function imageExists(url){ return new Promise(res=>{const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=url+"?t="+Date.now();}); }
+function lunarPhase(){ const now=new Date(), lp=2551443, nm=new Date(Date.UTC(2001,0,1,0,0,0)); return ((now-nm)/1000)%lp/lp; }
+
+async function setBackground(set){ const k=pickSizeKey(); const fx=fixedOK()?'fixed':'scroll'; const url=set[k]; if(await imageExists(url)){ document.body.style.background=`url('${url}') center/cover ${fx} no-repeat, #000`; } else { document.body.style.background=`radial-gradient(ellipse at center,#150a10 0%,#000 70%)`; } }
+async function setLockBackground(){ await setBackground(BACKS.lock); }
+async function setUnlockedBackground(){ const p=lunarPhase(); let set=BACKS.full; if(p<.24)set=BACKS.new; else if(p<.5)set=BACKS.waxing; else if(p<.76)set=BACKS.full; else set=BACKS.waning; await setBackground(set); }
+
+function spawnGlyphs(){ const layer=qs("#glyph-layer"); return setInterval(()=>{ const s=document.createElement("span"); s.className="glyph"; s.textContent=GLYPHS[Math.floor(Math.random()*GLYPHS.length)]; s.style.left=Math.random()*100+"vw"; s.style.bottom="-10vh"; s.style.fontSize=(14+Math.random()*18)+"px"; s.style.animationDuration=(12+Math.random()*16)+"s"; layer.appendChild(s); setTimeout(()=>s.remove(),20000); },420); }
+
+function startWhisper(){ try{ whisper=new Audio(AUDIO_SRC); whisper.loop=true; whisper.volume=settings.mute?0:.15; const input=qs("#pass"); const kick=()=>{ whisper.play().catch(()=>{}); input.removeEventListener("input",kick); }; input.addEventListener("input",kick);}catch(e){} }
+function stopWhisper(){ if(whisper){ whisper.pause(); whisper.currentTime=0; }}
+
+// === Focus trap for dialogs ===
+function trapFocus(dialogEl){
+  const FOCUSABLE='button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
+  const nodes=qsa(FOCUSABLE,dialogEl).filter(el=>!el.hasAttribute("disabled"));
+  if(!nodes.length) return ()=>{};
+  const first=nodes[0], last=nodes[nodes.length-1];
+  function handler(e){
+    if(e.key!=="Tab") return;
+    if(e.shiftKey && document.activeElement===first){ last.focus(); e.preventDefault(); }
+    else if(!e.shiftKey && document.activeElement===last){ first.focus(); e.preventDefault(); }
+  }
+  dialogEl.addEventListener("keydown",handler);
+  first.focus();
+  return ()=> dialogEl.removeEventListener("keydown",handler);
+}
+
+// === Dialog show/hide ===
+function show(el){ el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
+function hide(el){ el.style.display="none"; el.setAttribute("aria-hidden","true"); }
+
+// === Onboarding ===
+function showOnboarding(){
+  const d=qs("#onboard"); show(d);
+  let untrap=trapFocus(d.querySelector(".dialog-card"));
+  qs("#onboard-begin").onclick=()=>{ localStorage.setItem("onboarded","1"); hide(d); showConsent(); };
+  addEventListener("keydown",function esc(e){ if(e.key==="Escape"){ hide(d); removeEventListener("keydown",esc); showConsent(); } });
+}
+
+// === Consent ===
+function showConsent(){
+  const d=qs("#consent"); show(d);
+  const card=d.querySelector(".dialog-card"); let untrap=trapFocus(card);
+  const canvas=qs("#trace-canvas"); const ctx=canvas.getContext("2d");
+  canvas.width=Math.min(420, innerWidth*0.8); canvas.height=Math.min(220, innerHeight*0.35);
+  ctx.strokeStyle="#ff66a3"; ctx.lineWidth=12; ctx.lineCap="round";
+  const start=e=>{ drawing=true; draw(e) }, end=()=>{ drawing=false; ctx.beginPath(); };
+  const draw=e=>{ if(!drawing) return; const r=canvas.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top; ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y); traced++; };
+  canvas.addEventListener("mousedown",start); canvas.addEventListener("touchstart",start,{passive:true});
+  canvas.addEventListener("mousemove",draw); canvas.addEventListener("touchmove",draw,{passive:true});
+  addEventListener("mouseup",end); addEventListener("touchend",end);
+
+  // Preload likely background as perf hint
+  (async ()=>{ const p=lunarPhase(); let set=BACKS.full; if(p<.24)set=BACKS.new; else if(p<.5)set=BACKS.waxing; else if(p<.76)set=BACKS.full; else set=BACKS.waning; const k=pickSizeKey(); const img=new Image(); img.src=set[k]; })();
+
+  qs("#consent-yes").onclick=async ()=>{
+    if(traced<120){ speak("Please trace the sigil before entering."); return; }
+    vibrate([10,40,10]);
+    hide(d);
+    // If user previously opted to remember, skip the password this session (consent still required)
+    if(localStorage.getItem("rememberUnlocked")==="1"){ await unlock(true); }
+    else { await showLock(); }
+  };
+  qs("#consent-no").onclick=()=>{ speak("Consent denied. The door remains closed."); };
+  addEventListener("keydown",function esc(e){ if(e.key==="Escape"){ hide(d); speak("Consent dialog closed."); removeEventListener("keydown",esc);} });
+}
+
+// === Lock ===
+async function showLock(){
+  await setLockBackground();
+  const d=qs("#lock"); show(d);
+  const card=d.querySelector(".dialog-card"); let untrap=trapFocus(card);
+  const pass=qs("#pass"), eye=qs("#toggle-eye");
+  pass.value=""; pass.focus();
+  eye.onclick=()=>{ const s=pass.getAttribute("type")==="password"; pass.setAttribute("type", s?"text":"password"); eye.setAttribute("aria-label", s?"Hide password":"Show password"); };
+  startWhisper();
+  qs("#unlock-btn").onclick=()=>unlock(false);
+  addEventListener("keydown",function key(e){ if(e.key==="Enter"){ unlock(false);} });
+  qs("#mic-btn").onclick=()=>{
+    try{
+      const C=window.SpeechRecognition||window.webkitSpeechRecognition; if(!C) return speak("Voice not supported in this browser.");
+      const r=new C(); r.continuous=false; r.lang='en-US'; r.interimResults=false; r.maxAlternatives=1;
+      r.onresult=ev=>{ const t=ev.results[0][0].transcript.trim().toLowerCase(); if(t.includes(PASSCODE)) unlock(false); else speak("The lock does not recognize that utterance."); };
+      r.start();
+    }catch(e){ speak("Voice init failed."); }
+  };
+}
+
+// === App unlock ===
+async function unlock(skipPassword){
+  if(!skipPassword){
+    const v=qs("#pass").value.trim();
+    if(v!==PASSCODE){ speak("The veil does not part."); return; }
+  }
+  vibrate([5,30,20,30,5]);
+  stopWhisper();
+  hide(qs("#lock"));
+  qs("#app").style.display="block";
+  qs("#topbar").setAttribute("aria-hidden","false");
+  await setUnlockedBackground();
+  if(settings.reduceMotion) document.body.classList.add("reduce-motion"); else document.body.classList.remove("reduce-motion");
+  if(settings.theme==="submissive") document.body.classList.add("theme-submissive"); else if(settings.theme==="divine") document.body.classList.add("theme-divine");
+  glyphTimer = settings.reduceMotion ? null : spawnGlyphs();
+  if(settings.remember) localStorage.setItem("rememberUnlocked","1"); else localStorage.removeItem("rememberUnlocked");
+  renderGallery();
+  loadMemories();
+}
+
+// === Nav & Pages ===
+function setupNav(){
+  const tabs=["sanctum","lore","gallery","settings"];
+  const btns=qsa(".navbtn");
+  btns.forEach(b=>b.addEventListener("click",()=>{
+    btns.forEach(x=>x.classList.remove("active")); b.classList.add("active");
+    tabs.forEach(t=>qs("#tab-"+t).classList.remove("active")); qs("#tab-"+b.dataset.tab).classList.add("active");
+  }));
+}
+
+// === Settings ===
+function loadSettingsUI(){
+  qs("#set-remember").checked=!!settings.remember;
+  qs("#set-mute").checked=!!settings.mute;
+  qs("#set-reduce").checked=!!settings.reduceMotion;
+  qs("#set-theme").value=settings.theme||"dominant";
+}
+function saveSettings(){
+  settings.remember=qs("#set-remember").checked;
+  settings.mute=qs("#set-mute").checked;
+  settings.reduceMotion=qs("#set-reduce").checked;
+  settings.theme=qs("#set-theme").value;
+  localStorage.setItem("settings",JSON.stringify(settings));
+  speak("Settings saved.");
+}
+
+// === Memories ===
+async function loadMemories(){
+  const out=qs("#mem-list");
+  const retryBtn = `<div><button id="retry-mem" class="btn">Retry</button></div>`;
+  try{
+    const res=await fetch("data/memory.json",{cache:"no-store"});
+    const base=await res.json();
+    const user=JSON.parse(localStorage.getItem("memUser")||"[]");
+    const merged=base.concat(user);
+    out.innerHTML=merged.map(x=>`<div class="card">
+      <h3>${x.title}</h3>
+      <div>${x.locked?'<span class="badge">🔐 locked</span>':'<span class="badge">🜂 open</span>'}</div>
+      <div class="sub" style="margin-top:6px;">tags: ${x.tags?.join(", ")||""}</div>
+      <div style="margin-top:8px;opacity:.9;">${x.content||""}</div>
+    </div>`).join("");
+  }catch(e){
+    out.innerHTML = `<div class="card">Memory scroll not found yet. ${retryBtn}</div>`;
+    const btn=qs("#retry-mem"); if(btn){ btn.onclick=loadMemories; }
+  }
+}
+
+function setupAddMemory(){
+  qs("#am-save").onclick=()=>{
+    const title=qs("#am-title").value.trim();
+    const content=qs("#am-content").value.trim();
+    const tags=qs("#am-tags").value.trim().split(",").map(s=>s.trim()).filter(Boolean);
+    const locked=qs("#am-locked").checked;
+    if(!title){ speak("Title is required."); return; }
+    const arr=JSON.parse(localStorage.getItem("memUser")||"[]");
+    const id="u-"+Date.now(); arr.push({id,title,content,tags,locked});
+    localStorage.setItem("memUser",JSON.stringify(arr));
+    qs("#am-title").value=""; qs("#am-content").value=""; qs("#am-tags").value=""; qs("#am-locked").checked=false;
+    loadMemories();
+    speak("Memory added.");
+  };
+  qs("#am-export").onclick=()=>{
+    const data={generatedAt:new Date().toISOString(),settings, userMemories: JSON.parse(localStorage.getItem("memUser")||"[]")};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="dungeon_memories_export.json"; a.click();
+  };
+}
+
+function renderGallery(){
+  const grid=qs("#gallery-grid"); if(!grid) return;
+  const items=[BACKS.lock.l,BACKS.lock.m,BACKS.lock.s,BACKS.new.m,BACKS.waxing.m,BACKS.full.m,BACKS.waning.m];
+  grid.innerHTML = items.map(u=>`<div style="border:1px solid rgba(255,255,255,.15); border-radius:10px; overflow:hidden;">
+    <img src="${u}" loading="lazy" style="width:100%; display:block" alt="Background preview"/>
+  </div>`).join("");
+}
+
+// === Init ===
+window.addEventListener("DOMContentLoaded", async ()=>{
+  setupNav(); loadSettingsUI(); qs("#set-save").onclick=saveSettings; setupAddMemory();
+  if(settings.reduceMotion) document.body.classList.add("reduce-motion");
+  // First visit onboarding
+  if(localStorage.getItem("onboarded")==="1") showConsent(); else showOnboarding();
+});
+</script>
+</body>
+</html>

@@ -14,7 +14,7 @@ function card(a){
   return s;
 }
 function lockMsg(a){
-  const box=document.createElement('div'); box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+  const box=document.createElement('div'); box.id='lock-overlay'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
   box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10052;display:flex;align-items:center;justify-content:center;color:#fff;';
   box.innerHTML = `<div class="dialog-card" style="max-width:640px;width:95%;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(0,0,0,.45)">
     <h3 style="margin:0 0 6px">${a.title}</h3>

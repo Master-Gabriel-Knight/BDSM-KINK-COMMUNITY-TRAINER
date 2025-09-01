@@ -4,7 +4,7 @@
     if (document.getElementById('core-nav')) return;
     const nav = document.createElement('nav');
     nav.id='core-nav';
-    nav.style.cssText='position:fixed;top:10px;left:10px;z-index:1000;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:6px 8px;display:flex;gap:8px;align-items:center';
+    nav.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:6px 10px;display:flex;gap:12px;align-items:center';
     nav.innerHTML = `
       <button class="btn" data-target="sanctum-v2" title="Sanctum" style="font-size:18px">⟡</button>
       <button class="btn" data-target="global-gallery" title="Global Gallery" style="font-size:18px">ᛝ</button>

@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <style id="core-shell-hard">
-  /* Hide everything by default except the core shells and overlays */
-  body > *:not(#sanctum-v2):not(#global-gallery):not(#settings-pane):not(#consent-sigil-gate):not(#password-gate):not(#ritual-overlay):not(#area-overlay):not(#rune-bg-canvas):not(#core-nav){ display:none !important; }
+  /* Hide everything by default except the core shells and any dialog overlays */
+  body > *:not(#sanctum-v2):not(#global-gallery):not(#settings-pane):not([role="dialog"]):not(#rune-bg-canvas):not(#core-nav){ display:none !important; }
   /* Ensure Sanctum is on top so cards are clickable */
   #sanctum-v2{ position:relative; z-index:5; display:block !important; }
-  /* Core nav always visible */
-  #core-nav{ display:block !important; }
+  /* Core nav always visible and centered */
+  #core-nav{ display:flex !important; position:fixed; top:12px; left:50%; transform:translateX(-50%); }
 </style>
+
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta charset="utf-8"/>
@@ -128,14 +130,16 @@ h1,h2{ text-shadow:0 0 10px rgba(255,30,138,.25) }
 <section id="recorder" style="margin:24px auto;max-width:980px;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.35)"><h2 class="title" style="margin:0 0 6px">Session Recorder (local)</h2><div class="row" style="gap:8px;flex-wrap:wrap"><label><input id="ephemeral-toggle" type="checkbox"> Ephemeral Mode (clear data on exit)</label> <button id="rec-start" class="btn">Start</button><button id="rec-stop" class="btn secondary">Stop</button><button id="rec-export" class="navbtn">Export JSON</button></div><pre id="rec-log" style="margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:8px"></pre></section>
 
 <header id="topbar" aria-hidden="true">
+
 <style id="core-shell-hard">
-  /* Hide everything by default except the core shells and overlays */
-  body > *:not(#sanctum-v2):not(#global-gallery):not(#settings-pane):not(#consent-sigil-gate):not(#password-gate):not(#ritual-overlay):not(#area-overlay):not(#rune-bg-canvas):not(#core-nav){ display:none !important; }
+  /* Hide everything by default except the core shells and any dialog overlays */
+  body > *:not(#sanctum-v2):not(#global-gallery):not(#settings-pane):not([role="dialog"]):not(#rune-bg-canvas):not(#core-nav){ display:none !important; }
   /* Ensure Sanctum is on top so cards are clickable */
   #sanctum-v2{ position:relative; z-index:5; display:block !important; }
-  /* Core nav always visible */
-  #core-nav{ display:block !important; }
+  /* Core nav always visible and centered */
+  #core-nav{ display:flex !important; position:fixed; top:12px; left:50%; transform:translateX(-50%); }
 </style>
+
 
   <div style="display:flex; gap:8px; align-items:center"><span style="font-size:20px">🗝️</span><strong>master.gabriels.dungeon</strong></div>
   <nav id="nav" aria-label="Primary">

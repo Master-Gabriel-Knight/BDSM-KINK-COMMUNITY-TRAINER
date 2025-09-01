@@ -6,7 +6,7 @@
       "tags": [
         "intro"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Begin the path.",
       "lore": ""
     },
@@ -39,7 +39,7 @@
         "fashion",
         "fetish"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Dress the myth.",
       "lore": ""
     },
@@ -72,7 +72,7 @@
         "safety",
         "protocol"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "The language of care.",
       "lore": ""
     },
@@ -83,7 +83,7 @@
         "essay",
         "ethics"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Study the line, then play.",
       "lore": ""
     },
@@ -94,7 +94,7 @@
         "links",
         "curation"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Curated stratagems.",
       "lore": ""
     },
@@ -105,7 +105,7 @@
         "invitation",
         "etiquette"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Offerings, clean and clear.",
       "lore": ""
     },
@@ -127,7 +127,7 @@
         "aftercare",
         "care"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Tend the glow.",
       "lore": ""
     },
@@ -138,7 +138,7 @@
         "law",
         "protocol"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Boundaries as art.",
       "lore": ""
     },
@@ -160,7 +160,7 @@
         "ledger",
         "gifts"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Record the reciprocal.",
       "lore": ""
     },
@@ -171,7 +171,7 @@
         "lore",
         "myth"
       ],
-      "locked": false,
+      "locked": true,
       "blurb": "Remember what you are.",
       "lore": ""
     }

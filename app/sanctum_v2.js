@@ -4,11 +4,14 @@ import { openRitual } from './ritual.js';
 function fireArea(a){ window.dispatchEvent(new CustomEvent('mgd:area',{detail:a})); }
 function isUnlocked(a){ return !!localStorage.getItem('areaUnlocked_'+a.id); }
 
+function runToolAction(tool, areaId){
+  try{ window.MGD_TOOLS && window.MGD_TOOLS.runAction(tool.action, {areaId}); }catch(e){}
+}
+
 function card(a){
   const s=document.createElement('div'); s.className='area-card';
   s.style.cssText='border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;background:rgba(0,0,0,.35);min-height:120px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;';
-  const status = document.createElement('div'); status.className='sub'; status.style.opacity='.8';
-  status.dataset.status='';
+  const status = document.createElement('div'); status.className='sub'; status.style.opacity='.8'; status.dataset.status='';
   status.textContent = isUnlocked(a) ? 'Unlocked' : 'Locked';
   s.innerHTML = `<div style="font-weight:700">${a.title}</div><div class="sub" style="opacity:.85;margin:6px 0">${a.blurb||''}</div>`;
   s.appendChild(status);
@@ -36,7 +39,6 @@ function lockMsg(a, statusEl){
   box.querySelector('#begin-ritual').addEventListener('click', ()=>{
     box.remove();
     openRitual(a.id, ()=>{
-      // mark unlocked + open immediately
       localStorage.setItem('areaUnlocked_'+a.id,'1');
       if (statusEl) statusEl.textContent='Unlocked';
       openArea(a);
@@ -49,6 +51,24 @@ function areaSection(){
   s.style.cssText='max-width:1100px;margin:24px auto;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.25)';
   s.innerHTML='<h2 style="margin:0 0 6px">Sanctum</h2><p class="sub" style="opacity:.85;margin:0 0 8px">Choose an area. Tools appear within; the path remembers you.</p><div id="areas-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>';
   return s;
+}
+
+function renderAreaTools(wrap, a){
+  const lvl = (window.MGD_PROGRESS && typeof window.MGD_PROGRESS.level==='function') ? window.MGD_PROGRESS.level() : 0;
+  const tools = (window.MGD_TOOLS && window.MGD_TOOLS.choose) ? window.MGD_TOOLS.choose(a.id, lvl) : [];
+  const sec = document.createElement('section');
+  sec.style.cssText='border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px';
+  sec.innerHTML = `<h3 style="margin:0 0 6px">Area Tools</h3><div class="row" style="gap:8px;flex-wrap:wrap" id="tool-row"></div>`;
+  wrap.appendChild(sec);
+  const row = sec.querySelector('#tool-row');
+  tools.forEach(t=>{
+    const b=document.createElement('button'); b.className='btn'; b.textContent=t.label;
+    b.addEventListener('click', ()=> runToolAction(t, a.id));
+    row.appendChild(b);
+  });
+  if (!tools.length){
+    const p=document.createElement('p'); p.className='sub'; p.style.opacity='.8'; p.textContent='Tools will appear as you progress.'; sec.appendChild(p);
+  }
 }
 
 function miniSanctum(a){
@@ -79,9 +99,12 @@ function miniSanctum(a){
         <ul id="memo-list" style="margin-top:6px"></ul>
       </section>
     </div>
+    <div id="area-tools-wrap" style="margin-top:12px"></div>
   </div>`;
   document.body.appendChild(box);
   fireArea(a.id);
+
+  // Wire Lore/Gallery/Memories like before
   const loreKey='mgd.area.lore.'+a.id, galKey='mgd.area.gallery.'+a.id, memKey='mgd.area.mem.'+a.id;
   const loreBox=box.querySelector('#area-lore'); loreBox.value = localStorage.getItem(loreKey)||'';
   box.querySelector('#save-lore').addEventListener('click', ()=> localStorage.setItem(loreKey, loreBox.value||''));
@@ -138,6 +161,9 @@ function miniSanctum(a){
     const L=readM(); L.unshift({t:Date.now(), text:v}); writeM(L); box.querySelector('#area-memo').value='';
   });
   box.querySelector('#area-close').addEventListener('click', ()=> box.remove());
+
+  // Render Area Tools (contextual, progressive)
+  renderAreaTools(box.querySelector('#area-tools-wrap'), a);
 }
 
 function openArea(a){ miniSanctum(a); }

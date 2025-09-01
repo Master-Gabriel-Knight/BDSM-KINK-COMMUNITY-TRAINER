@@ -1,56 +1,78 @@
-
-import { setToneHz, openBreathRitual } from './breath.js';
-import { NODE_MAP } from './nodes.js';
-
-const LS = { ritual: 'mgd.ritual.saved' };
-
-function parse(text){
-  const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-  const cmds = [];
-  for (const line of lines){
-    const mTone = line.match(/^tone\s+(\d+)/i);
-    const mCad = line.match(/^cadence\s+([\d\s,]+)/i);
-    const mBreath = line.match(/^breath(?:\s+x(\d+))?/i);
-    const mUnlock = line.match(/^unlock\s+(\w+)/i);
-    const mDecree = line.match(/^decree\s+["“”'](.+)["“”']/i);
-    if (mTone){ cmds.push({op:'tone', hz: parseInt(mTone[1],10)}); continue; }
-    if (mCad){ cmds.push({op:'cadence', seq:mCad[1]}); continue; }
-    if (mBreath){ cmds.push({op:'breath', times: parseInt(mBreath[1]||'3',10)}); continue; }
-    if (mUnlock){ cmds.push({op:'unlock', key:mUnlock[1].toLowerCase()}); continue; }
-    if (mDecree){ cmds.push({op:'decree', text:mDecree[1]}); continue; }
+export const RITUAL_DEFAULTS = { breathCycles: 3, recitations: 3, strokes: 60 };
+export const RITUAL_OVERRIDES = (window.RITUAL_OVERRIDES || {
+  hell_antechamber: { breathCycles: 5, recitations: 3, strokes: 120 },
+  rites:           { breathCycles: 4, recitations: 5, strokes: 80 }
+});
+function reqFor(area){ const o = RITUAL_OVERRIDES[area] || {}; return { ...RITUAL_DEFAULTS, ...o }; }
+export function openRitual(areaId, onComplete){
+  const req = reqFor(areaId);
+  const box = document.createElement('div'); box.id='ritual-overlay'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+  box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10060;color:#fff;display:flex;align-items:center;justify-content:center';
+  box.innerHTML = `
+  <div class="dialog-card" style="max-width:820px;width:96%;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(0,0,0,.45)">
+    <h2 style="margin:0 0 6px">Spiral Flame Ritual</h2>
+    <p class="sub" style="opacity:.85;margin:0 0 8px">Complete the three paths to unlock this area.</p>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
+      <section class="box" style="border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px">
+        <h3 style="margin:0 0 4px">Breath — 4‑7‑8</h3>
+        <p class="sub" id="breath-label">0 / ${req.breathCycles} cycles</p>
+        <div id="breath-orb" style="height:140px;border-radius:50%;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:600">Ready</div>
+        <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+          <button id="breath-start" class="btn">Start</button>
+          <button id="breath-stop" class="btn secondary">Stop</button>
+          <span class="sub">Space = pause/resume</span>
+        </div>
+      </section>
+      <section class="box" style="border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px">
+        <h3 style="margin:0 0 4px">Recitations</h3>
+        <p class="sub" id="rec-label">0 / ${req.recitations}</p>
+        <button id="rec-mark" class="btn">Mark Recited</button>
+      </section>
+      <section class="box" style="border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px">
+        <h3 style="margin:0 0 4px">Micro‑Sigil</h3>
+        <p class="sub" id="stroke-label">0 / ${req.strokes} strokes</p>
+        <canvas id="stroke-canvas" width="360" height="160" style="width:100%;height:auto;border:1px dashed rgba(255,255,255,.25);border-radius:8px;background:#000"></canvas>
+      </section>
+    </div>
+    <div class="row" style="gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+      <button id="ritual-close" class="btn secondary">Close</button>
+      <button id="ritual-complete" class="btn" disabled>Complete Ritual</button>
+    </div>
+  </div>`;
+  document.body.appendChild(box);
+  let cycles=0, phase='idle', t=0, timer=null, paused=false;
+  const orb = box.querySelector('#breath-orb'), bl = box.querySelector('#breath-label');
+  function setOrb(txt, scale){ orb.textContent=txt; orb.style.transform=`scale(${scale})`; orb.style.transition='transform 0.2s ease'; }
+  function tick(){
+    if (paused) return;
+    t++;
+    if (phase==='inhale' && t>=4){ phase='hold'; t=0; setOrb('Hold 7', 1.15); }
+    else if (phase==='hold' && t>=7){ phase='exhale'; t=0; setOrb('Exhale 8', 0.85); }
+    else if (phase==='exhale' && t>=8){ cycles++; bl.textContent = cycles + ' / ' + req.breathCycles + ' cycles'; if (cycles>=req.breathCycles){ stopBreath(); doneCheck(); return; } phase='inhale'; t=0; setOrb('Inhale 4', 1.05); }
   }
-  return cmds;
-}
-
-function apply(cmds){
-  // Apply tone/cadence immediately; breath opens overlay; decree shows overlay
-  const custom = document.getElementById('breath-custom');
-  cmds.forEach(c => {
-    if (c.op==='tone'){ setToneHz(c.hz); }
-    if (c.op==='cadence' && custom){ custom.value = c.seq; }
-    if (c.op==='unlock'){
-      try{
-        const LS_U = 'mgd.sanctum.unlocks';
-        const u = JSON.parse(localStorage.getItem(LS_U)||'{}'); u[c.key]=true; localStorage.setItem(LS_U, JSON.stringify(u));
-      }catch(e){}
-    }
-    if (c.op==='decree'){
-      const d = document.getElementById('birthright-decree');
-      if (d) d.style.display='flex';
-    }
+  function startBreath(){ if (timer) return; phase='inhale'; t=0; setOrb('Inhale 4', 1.05); timer=setInterval(tick, 1000); }
+  function stopBreath(){ clearInterval(timer); timer=null; phase='idle'; setOrb('Ready', 1.0); }
+  box.querySelector('#breath-start').addEventListener('click', startBreath);
+  box.querySelector('#breath-stop').addEventListener('click', stopBreath);
+  window.addEventListener('keydown', (e)=>{ if (e.code==='Space'){ e.preventDefault(); if (!timer) startBreath(); else paused=!paused; } });
+  let rec=0; const rl=box.querySelector('#rec-label');
+  box.querySelector('#rec-mark').addEventListener('click', ()=>{ rec++; rl.textContent = rec + ' / ' + req.recitations; doneCheck(); });
+  let strokes=0, drawing=false, last=null;
+  const cv=box.querySelector('#stroke-canvas'), ctx=cv.getContext('2d'); ctx.strokeStyle='#ffc9f0'; ctx.lineWidth=2; ctx.lineCap='round';
+  function pos(e){ const r=cv.getBoundingClientRect(); const x=(e.touches? e.touches[0].clientX:e.clientX)-r.left; const y=(e.touches? e.touches[0].clientY:e.clientY)-r.top; return {x:x*(cv.width/r.width), y:y*(cv.height/r.height)}; }
+  function down(e){ drawing=true; last=pos(e); e.preventDefault(); }
+  function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; strokes++; box.querySelector('#stroke-label').textContent = strokes + ' / ' + req.strokes; doneCheck(); e.preventDefault(); }
+  function up(){ drawing=false; }
+  cv.addEventListener('mousedown', down); cv.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+  cv.addEventListener('touchstart', down, {passive:false}); cv.addEventListener('touchmove', move, {passive:false}); cv.addEventListener('touchend', up);
+  function doneCheck(){
+    const ok = cycles>=req.breathCycles && rec>=req.recitations && strokes>=req.strokes;
+    box.querySelector('#ritual-complete').disabled = !ok;
+  }
+  box.querySelector('#ritual-close').addEventListener('click', ()=> box.remove());
+  box.querySelector('#ritual-complete').addEventListener('click', ()=>{
+    localStorage.setItem('areaUnlocked_'+areaId, '1');
+    box.remove();
+    if (typeof onComplete==='function') onComplete();
   });
-  // If any breath command exists, open ritual with no specific node
-  if (cmds.some(c => c.op==='breath')){ openBreathRitual(null); }
 }
-
-export function bootstrapRitual(){
-  const t = document.getElementById('ritual-text');
-  const run = document.getElementById('ritual-run');
-  const save = document.getElementById('ritual-save');
-  const load = document.getElementById('ritual-load');
-  run?.addEventListener('click', ()=> apply(parse(t.value||'')));
-  save?.addEventListener('click', ()=> localStorage.setItem(LS.ritual, t.value||''));
-  load?.addEventListener('click', ()=> t.value = localStorage.getItem(LS.ritual)||'');
-}
-
-document.addEventListener('DOMContentLoaded', bootstrapRitual);

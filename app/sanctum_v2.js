@@ -1,19 +1,26 @@
 import { loadAreas } from './areas_config.js';
 import { openRitual } from './ritual.js';
+
 function fireArea(a){ window.dispatchEvent(new CustomEvent('mgd:area',{detail:a})); }
+function isUnlocked(a){ return !!localStorage.getItem('areaUnlocked_'+a.id); }
+
 function card(a){
-  const unlocked = !!localStorage.getItem('areaUnlocked_'+a.id) || !a.locked;
   const s=document.createElement('div'); s.className='area-card';
   s.style.cssText='border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;background:rgba(0,0,0,.35);min-height:120px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;';
-  s.innerHTML = `<div style="font-weight:700">${a.title}</div><div class="sub" style="opacity:.85;margin:6px 0">${a.blurb||''}</div><div class="sub" data-status style="opacity:.8">${unlocked? 'Unlocked':'Locked'}</div>`;
-  s.addEventListener('click', ()=>{
-    if (unlocked) openArea(a);
-    else lockMsg(a);
-  });
+  const status = document.createElement('div'); status.className='sub'; status.style.opacity='.8';
+  status.dataset.status='';
+  status.textContent = isUnlocked(a) ? 'Unlocked' : 'Locked';
+  s.innerHTML = `<div style="font-weight:700">${a.title}</div><div class="sub" style="opacity:.85;margin:6px 0">${a.blurb||''}</div>`;
+  s.appendChild(status);
   s.dataset.areaId = a.id;
+  s.addEventListener('click', ()=>{
+    if (isUnlocked(a)){ openArea(a); }
+    else { lockMsg(a, status); }
+  });
   return s;
 }
-function lockMsg(a){
+
+function lockMsg(a, statusEl){
   const box=document.createElement('div'); box.id='lock-overlay'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
   box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10052;display:flex;align-items:center;justify-content:center;color:#fff;';
   box.innerHTML = `<div class="dialog-card" style="max-width:640px;width:95%;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(0,0,0,.45)">
@@ -29,17 +36,21 @@ function lockMsg(a){
   box.querySelector('#begin-ritual').addEventListener('click', ()=>{
     box.remove();
     openRitual(a.id, ()=>{
-      const c = document.querySelector('.area-card[data-area-id="'+a.id+'"] [data-status]');
-      if (c) c.textContent='Unlocked';
+      // mark unlocked + open immediately
+      localStorage.setItem('areaUnlocked_'+a.id,'1');
+      if (statusEl) statusEl.textContent='Unlocked';
+      openArea(a);
     });
   });
 }
+
 function areaSection(){
   const s=document.createElement('section'); s.id='sanctum-v2';
   s.style.cssText='max-width:1100px;margin:24px auto;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(0,0,0,.25)';
   s.innerHTML='<h2 style="margin:0 0 6px">Sanctum</h2><p class="sub" style="opacity:.85;margin:0 0 8px">Choose an area. Tools appear within; the path remembers you.</p><div id="areas-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>';
   return s;
 }
+
 function miniSanctum(a){
   const box=document.createElement('div'); box.id='area-overlay'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
   box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:10054;color:#fff;overflow:auto';
@@ -106,7 +117,7 @@ function miniSanctum(a){
   box.querySelector('#area-upload').addEventListener('change', (e)=>{
     const files = Array.from(e.target.files||[]).slice(0, 50);
     if (!files.length) return;
-    const reader = new FileReader(); let i=0; const acc = readGallery();
+    const acc = readGallery(); let i=0;
     function next(){
       const f=files[i++]; if (!f) { writeGallery(acc); return; }
       const r=new FileReader(); r.onload=ev=>{ acc.unshift({id:'img_'+Date.now()+'_'+i, data:ev.target.result, hidden:false}); next(); }; r.readAsDataURL(f);
@@ -128,7 +139,9 @@ function miniSanctum(a){
   });
   box.querySelector('#area-close').addEventListener('click', ()=> box.remove());
 }
+
 function openArea(a){ miniSanctum(a); }
+
 export async function buildSanctum(){
   const conf = await loadAreas();
   const sec = areaSection();
